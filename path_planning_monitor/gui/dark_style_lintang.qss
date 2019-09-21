@@ -1,0 +1,98 @@
+QDialog{
+    background:rgb(0,0,0)
+    /*background-image: url(:/media/koseng/New Volume/wallpaper/01_soyuz_rtx6epjr.adapt.1900.1.jpg);*/
+}
+
+QMainWindow {
+    background-color:black;
+}
+
+/*QMainWindow > QWidget{
+	border:none;
+}*/
+
+QStatusBar{
+    background:grey;
+}
+
+QGridLayout{
+    background: black;
+}
+
+QPushButton{
+	color:white;
+	background:black;
+	/*background-color:rgb(77,77,77);*/
+}
+
+QTabWidget > QWidget{
+	background:black;	
+}
+
+QTabWidget::pane{
+	/*background:white;*/
+        border-top:2px solid rgb(14,76,146);
+        border-right:2px solid rgb(14,76,146);
+        border-left:2px solid rgb(14,76,146);
+        border-bottom:2px solid rgb(14,76,146);
+}
+
+QTabBar::tab{
+	background:gray;
+}
+
+QTabBar::tab:selected{
+	color:white;
+        background:rgb(14,76,146);
+}
+
+/*QTabWidget::pane#motion_tab{
+	border-top:2px solid blue;
+	border-right:2px solid blue;
+	border-left:2px solid blue;
+	border-bottom:2px solid blue;
+}*/
+
+/*QSpinBox{
+	border:none;
+	background:rgba(0,0,255,125);
+}*/
+
+QGroupBox{
+	border:5px solid rgb(77,77,77);
+	border-radius:10px;	
+	margin-top:10px;
+}
+
+QGroupBox::title{
+	padding-top:-10px;
+	color:white;
+}
+
+QMessageBox{
+	background-color:black;
+}
+
+QCheckBox{	
+	color:white;	
+}
+
+QLabel{
+	color:white;
+}
+
+QRadioButton{
+	color:white;
+}
+
+QChart{
+    /*border:0px solid rgb(0,0,0);*/
+    margin-top:0px;
+    margin-left:0px;
+    margin-right:0px;
+    margin-bottom:0px;
+}
+
+QScrollArea{
+    background:black;
+}

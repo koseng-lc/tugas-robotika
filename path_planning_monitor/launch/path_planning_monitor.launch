@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node pkg="path_planning_monitor" name="path_planning_monitor_node" type="path_planning_monitor_node" output="screen">
+
+    </node>
+
+    <node pkg="path_planning" name="path_planning_node" type="path_planning_node" output="screen">
+
+    </node>
+
+<!--    <node pkg="test" name="test_node" type="test_node" output="screen">
+
+    </node>-->
+
+</launch>
