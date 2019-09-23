@@ -17,15 +17,15 @@ public:
     RobotVel forwardKinematics(const MotorVel& _motor_vel);
     MotorVel inverseKinematics(const RobotVel& _robot_vel);
 
-    MotorVel inverseKinematics_2();
+    MotorVel inverseKinematics_2(const RobotVel& _robot_vel);
 
     mat33 r_to_m;
     mat33 m_to_r;
 
-    mat33 motor;
-    RobotVel velocity;
-    MotorVel motor_velocity;
-    double velocity_phi;
+//    mat33 motor;
+//    RobotVel velocity;
+//    MotorVel motor_velocity;
+//    double velocity_phi;
 
     static Kinematics& inst(){
         static Kinematics instance;
@@ -36,6 +36,7 @@ private:
     Kinematics();
     ~Kinematics();
 
-    inline double radToDeg(double rad);
-    inline double degToRad(double deg);
+    const static double RAD2DEG;
+    const static double DEG2RAD;
+    const static double SPIN_RATE;
 };

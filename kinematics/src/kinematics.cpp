@@ -1,5 +1,9 @@
 #include "kinematics/kinematics.h"
 
+const double Kinematics::DEG2RAD(M_PI / 180.0);
+const double Kinematics::RAD2DEG(180.0 / M_PI);
+const double Kinematics::SPIN_RATE(60);
+
 Kinematics::Kinematics(){
     m_to_r << -1      << .5                 << .5                << endr
            << 0       << -std::sqrt(3) * .5 << std::sqrt(3) * .5 << endr
@@ -22,17 +26,11 @@ MotorVel Kinematics::inverseKinematics(const RobotVel& _robot_vel){
     return r_to_m *_robot_vel;
 }
 
-MotorVel Kinematics::inverseKinematics_2(){
-    motor << 1/(RobotData::WHEEL_RAD*sin(degToRad(300) - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(degToRad(300) - velocity_phi)) << 1 << endr
-          << 1/(RobotData::WHEEL_RAD*sin(degToRad(60)  - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(degToRad(60)  - velocity_phi)) << 1 << endr
-          << 1/(RobotData::WHEEL_RAD*sin(degToRad(180) - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(degToRad(180) - velocity_phi)) << 1 << endr;
-    return motor;
-}
-
-inline double Kinematics::radToDeg(double rad){
-    return rad * 180.0 / M_PI;
-}
-
-inline double Kinematics::degToRad(double deg){
-    return deg * M_PI / 180.0;
+MotorVel Kinematics::inverseKinematics_2(const RobotVel& _robot_vel){
+    mat33 motor;
+    auto velocity_phi(std::atan2(_robot_vel.at(1), _robot_vel.at(0)));
+    motor << 1/(RobotData::WHEEL_RAD*sin(DEG2RAD * (300) - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(DEG2RAD * (300) - velocity_phi)) << 1 << endr
+          << 1/(RobotData::WHEEL_RAD*sin(DEG2RAD * (60)  - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(DEG2RAD * (60)  - velocity_phi)) << 1 << endr
+          << 1/(RobotData::WHEEL_RAD*sin(DEG2RAD * (180) - velocity_phi)) << 1/(RobotData::WHEEL_RAD*cos(DEG2RAD * (180) - velocity_phi)) << 1 << endr;
+    return motor * _robot_vel / SPIN_RATE;
 }

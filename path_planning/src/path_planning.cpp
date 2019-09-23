@@ -2,7 +2,7 @@
 
 PathPlanning::PathPlanning()
     : gmd_pub_(nh_.advertise<msgs::GridMapData >("/grid_map/data", 1))
-    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 1))
+    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 3))
     , gmd_sub_(nh_.subscribe("/grid_map/data", 1, &PathPlanning::mapCb, this))
     , vd_sub_(nh_.subscribe("/vertice/data", 1, &PathPlanning::verticeDataCb, this))
     , planner_in_sub_(nh_.subscribe("/path_planning/input", 1, &PathPlanning::plannerInCb, this))
@@ -15,8 +15,6 @@ PathPlanning::PathPlanning()
 
     map_data_.m.resize(CELL_COLS * CELL_ROWS);
     vertice_data_.data.resize(CELL_COLS * CELL_ROWS);
-
-//    publishData();
 
 }
 

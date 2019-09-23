@@ -77,7 +77,7 @@ void MainWindow::keyPressEvent(QKeyEvent *e){
     default:break;
     }
 
-    MotorVel motor_vel = Kinematics::inst().inverseKinematics(RobotVel{vx,vy,vz});
+    MotorVel motor_vel = Kinematics::inst().inverseKinematics_2(RobotVel{vx,vy,vz});
     msgs::MotorVel motor_vel_data;
     motor_vel_data.motor1 = motor_vel.at(0);
     motor_vel_data.motor2 = motor_vel.at(1);

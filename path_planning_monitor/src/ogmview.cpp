@@ -130,7 +130,7 @@ void OGMView::updateScene(){
 
 void OGMView::extract(){
 
-    extractSolution(flatIdx(dest_));
+//    extractSolution(flatIdx(dest_));
 }
 
 void OGMView::solve(){
