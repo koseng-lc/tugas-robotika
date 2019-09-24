@@ -29,8 +29,6 @@ private:
 
     ros::Subscriber gmd_sub_;
     void mapCb(const msgs::GridMapDataConstPtr &_map_data);
-    ros::Subscriber vd_sub_;
-    void verticeDataCb(const msgs::VerticeDataConstPtr &_vertice_data);
 
     msgs::GridMapData map_data_;
     msgs::VerticeData vertice_data_;

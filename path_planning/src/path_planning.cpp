@@ -2,9 +2,8 @@
 
 PathPlanning::PathPlanning()
     : gmd_pub_(nh_.advertise<msgs::GridMapData >("/grid_map/data", 1))
-    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 3))
+    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 1))
     , gmd_sub_(nh_.subscribe("/grid_map/data", 1, &PathPlanning::mapCb, this))
-    , vd_sub_(nh_.subscribe("/vertice/data", 1, &PathPlanning::verticeDataCb, this))
     , planner_in_sub_(nh_.subscribe("/path_planning/input", 1, &PathPlanning::plannerInCb, this))
     , path_pub_(nh_.advertise<msgs::Path >("/path_planning/path", 1)){
 
@@ -29,14 +28,12 @@ void PathPlanning::plannerInCb(const msgs::PlannerInputConstPtr &_in){
     solver_->setSource() = source;
     solver_->setTarget() = target;
 
-    path_.header = _in->header;
-
-    std::future<void> concurrency = std::async(std::launch::async, [this,target]{
+    std::future<void> concurrency = std::async(std::launch::async, [this,source,target]{
         solver_->reinit();
         solver_->solve();
         extractSolution(target);
-        publishSolution();
         publishData();
+        publishSolution();
     });
 }
 
@@ -57,10 +54,6 @@ void PathPlanning::mapCb(const msgs::GridMapDataConstPtr &_map_data){
             }
         }
     });
-}
-
-void PathPlanning::verticeDataCb(const msgs::VerticeDataConstPtr &_vertice_data){
-    vertice_data_ = *_vertice_data;
 }
 
 void PathPlanning::routine(){
@@ -90,6 +83,10 @@ void PathPlanning::extractSolution(Point _p){
 }
 
 void PathPlanning::publishSolution(){
+    path_.header.seq++;
+    path_.header.stamp = ros::Time::now();
+    path_.header.frame_id = "path_planning";
+
     path_pub_.publish(path_);
     path_.path.clear();
 }

@@ -10,6 +10,9 @@
 
     </node>
 
+    <node pkg="trajectory_generator" name="trajectory_generator_node" type="trajectory_generator_node" output="screen">
+
+    </node>
 <!--    <node pkg="test" name="test_node" type="test_node" output="screen">
 
     </node>-->
