@@ -61,8 +61,10 @@ void TrajectoryGenerator::process(){
     if(path_.header.seq <= seq)return;
 
     getKnots();
+
     for(auto k:knots_)
         std::cout << "Point : " << k.first << " ; " << k.second << std::endl;
+
     knots_.clear();
 
     seq = path_.header.seq;
