@@ -17,7 +17,7 @@ void TrajectoryGenerator::inputUtilsCb(const msgs::PathConstPtr &_path, const ms
     path_ = *_path;
     vertice_ = *_vertice;
 
-    std::cout << path_.header.seq << " ; " << vertice_.header.seq<< std::endl;
+    std::cout << path_.header.seq << " ; " << vertice_.header.seq << std::endl;
 }
 
 void TrajectoryGenerator::getKnots(){
@@ -62,9 +62,19 @@ void TrajectoryGenerator::process(){
 
     getKnots();
 
-    for(auto k:knots_)
+    for(auto k:knots_){
+//        spline_.addPoint(k);
         std::cout << "Point : " << k.first << " ; " << k.second << std::endl;
+    }
 
+    spline_.addPoint(Point{3.0,2.5});
+    spline_.addPoint(Point{4.5,1.0});
+    spline_.addPoint(Point{7.0,2.5});
+    spline_.addPoint(Point{9.0,0.5});
+
+    spline_.solve();
+
+    spline_.clearPoints();
     knots_.clear();
 
     seq = path_.header.seq;

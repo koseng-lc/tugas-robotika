@@ -9,18 +9,20 @@
 #include <iostream>
 #include <cassert>
 
+#define DEBUG_GAUSS_SEIDEL
 
-template <std::size_t NumVariables, int NumIter = 10>
+template <int NumIter = 10>
 class GaussSeidel{
 public:
     using Data = std::vector<double>;
 
-    GaussSeidel(){
-        num_iter = NumIter;
-        A.resize(NumVariables * NumVariables);
-        x.resize(NumVariables);
-        prev_x.resize(NumVariables);
-        b.resize(NumVariables);
+    GaussSeidel(std::size_t _num_variables){
+//        num_iter = NumIter;
+        num_variables = _num_variables;
+        A.resize(num_variables * num_variables);
+        x.resize(num_variables);
+        prev_x.resize(num_variables);
+        b.resize(num_variables);
         error_tolerance = 1e-6;
     }
 
@@ -46,17 +48,34 @@ public:
         }
     }
 
+
     void setErrorTolerance(double _tol){
         error_tolerance = _tol;
     }
 
-    void process();
-
-    static inline int flatIdx(int i, int j){
-        return i + j * static_cast<int>(NumVariables);
+    inline std::size_t getCoeffSize() const{
+        return A.size();
     }
 
-    double prevSum(int i, int j);
+    inline std::size_t getSolutionSize()const{
+        return x.size();
+    }
+
+    inline std::size_t getConstSize() const{
+        return b.size();
+    }
+
+    inline std::size_t getNumVariables() const{
+        return num_variables;
+    }
+
+    void process();
+
+    inline int flatIdx(int i, int j){
+        return i + j * static_cast<int>(num_variables);
+    }
+
+    double prevSum(std::size_t idx);
 
 private:
     Data A;
@@ -64,41 +83,52 @@ private:
     Data prev_x;
     Data b;
 
-    int num_iter;
+//    int num_iter;
     double error_tolerance;
+    std::size_t num_variables;
 
     double calcError(){
-        auto error_sum(.0);
+        auto max_error(.0);
+        auto error(.0);
         for(std::size_t i(0); i < x.size(); i++){
-            error_sum += (x[i] - prev_x[i]) / x[i];
+            error = (x[i] - prev_x[i]) / x[i];
+            if(error > max_error)
+                max_error = error;
         }
-        return error_sum;
+        return max_error;
     }
 
 };
 
-template <std::size_t NumVariables, int NumIter>
-double GaussSeidel<NumVariables, NumIter>::prevSum(int i, int j){
+template <int NumIter>
+double GaussSeidel<NumIter>::prevSum(std::size_t idx){
     auto sum(.0);
-    for(std::size_t idx(0); idx < j; idx++){
-        sum += A[flatIdx(i, idx)] * x[idx];
+    for(std::size_t i(0); i < num_variables; i++){
+        if(i != idx)
+            sum += A[flatIdx(i, idx)] * x[i];
     }
     return sum;
 }
 
-template <std::size_t NumVariables, int NumIter>
-void GaussSeidel<NumVariables, NumIter>::process(){
+template <int NumIter>
+void GaussSeidel<NumIter>::process(){
     std::size_t iter(0);
+    auto error(.0);
     do{
 
-        for(std::size_t i(0); i < NumVariables; i++){
+        for(std::size_t i(0); i < num_variables; i++){
             prev_x[i] = x[i];
-            x[i] = (1.0 / A[flatIdx(i, i)]) * (b[i] - prevSum(0, i));
-            std::cout << "x" << i << " : " << x[i] << std::endl;
+            x[i] = (1.0 / A[flatIdx(i, i)]) * (b[i] - prevSum(i));
+#ifdef DEBUG_GAUSS_SEIDEL
+            std::cout << "x" << i << " : " << x[i] << " ; prev : " << prev_x[i] << std::endl;
+#endif
         }
 
         ++iter;
-
-    }while(calcError() > error_tolerance && iter < NumIter);
+        error = calcError();
+#ifdef DEBUG_GAUSS_SEIDEL
+        std::cout << "Error after " << iter << " iterations : " << error << std::endl;
+#endif
+    }while(error > error_tolerance && iter < NumIter);
 
 }
