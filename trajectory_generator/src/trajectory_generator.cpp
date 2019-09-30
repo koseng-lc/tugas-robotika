@@ -3,7 +3,9 @@
 TrajectoryGenerator::TrajectoryGenerator()
      : path_sub_(nh_, "/path_planning/path", 1)
      , vertice_sub_(nh_, "/vertice/data", 1)
-     , sync_(Sync(10), path_sub_, vertice_sub_){
+     , sync_(Sync(10), path_sub_, vertice_sub_)
+     , motor_vel_pub_(nh_.advertise<msgs::MotorVel>("/motor/vel", 1))
+     , trajectory_pub_(nh_.advertise<msgs::QuadraticSpline>("/trajectory/solution", 1)){
 
     sync_.registerCallback(boost::bind(&TrajectoryGenerator::inputUtilsCb, this, _1, _2));
 //    path_.header.seq = 0;
@@ -58,26 +60,32 @@ void TrajectoryGenerator::getKnots(){
 
 void TrajectoryGenerator::process(){
     static auto seq(0);
-    if(path_.header.seq <= seq)return;
+    if(path_.header.seq > seq){
+        getKnots();
 
-    getKnots();
+        for(auto k:knots_){
+            spline_.addPoint(k);
+            std::cout << "Point : " << k.first << " ; " << k.second << std::endl;
+        }
 
-    for(auto k:knots_){
-//        spline_.addPoint(k);
-        std::cout << "Point : " << k.first << " ; " << k.second << std::endl;
+        //DEBUG Only
+//        spline_.addPoint(Point{3.0,2.5});
+//        spline_.addPoint(Point{4.5,1.0});
+//        spline_.addPoint(Point{7.0,2.5});
+//        spline_.addPoint(Point{9.0,0.5});
+
+        spline_.solve();
+
+        spline_.clearPoints();
+        knots_.clear();
+
+        seq = path_.header.seq;
+
+        msgs::QuadraticSpline solution;
+        solution = spline_.getSolution();
+        trajectory_pub_.publish(solution);
     }
 
-    spline_.addPoint(Point{3.0,2.5});
-    spline_.addPoint(Point{4.5,1.0});
-    spline_.addPoint(Point{7.0,2.5});
-    spline_.addPoint(Point{9.0,0.5});
-
-    spline_.solve();
-
-    spline_.clearPoints();
-    knots_.clear();
-
-    seq = path_.header.seq;
 }
 
 void TrajectoryGenerator::routine(){

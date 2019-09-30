@@ -40,6 +40,8 @@ private:
 
     ros::Publisher motor_vel_pub_;
 
+    ros::Publisher trajectory_pub_;
+
     Points knots_;
     Spline spline_;
 

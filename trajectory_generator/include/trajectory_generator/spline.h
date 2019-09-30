@@ -1,9 +1,15 @@
 #pragma once
 
+#include <msgs/QuadraticSpline.h>
+
 #include <vector>
 #include <functional>
 
+#include <armadillo>
+
 #include "trajectory_generator/gauss_seidel.h"
+
+using namespace arma;
 
 class Spline{
 public:
@@ -18,9 +24,12 @@ public:
 
     using Points = std::vector<Point >;
     using PolyGroup = std::vector<PieceWise >;
+
 private:
     Points* points_;
     PolyGroup* group_;
+
+    msgs::QuadraticSpline solution_;
 
 public:
     Spline();
@@ -32,6 +41,10 @@ public:
 
     inline void clearPoints(){
         points_->clear();
+    }
+
+    inline msgs::QuadraticSpline getSolution() const{
+        return solution_;
     }
 
     void solve();

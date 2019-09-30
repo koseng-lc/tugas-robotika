@@ -79,8 +79,42 @@ void Spline::solve(){
         std::cout << "a(" << i%solver.getNumVariables() << i/solver.getNumVariables() << ") : " << mcoeff[i] << std::endl;
     }
 
-    solver.initCoeff(mcoeff);
-    solver.initConst(vconst);
-    solver.process();
+//    solver.initCoeff(mcoeff);
+//    solver.initConst(vconst);
+//    solver.process();
+
+    arma::mat A(solver.getNumVariables(), solver.getNumVariables());
+    arma::vec b(solver.getNumVariables());
+    for(std::size_t i(0); i < solver.getNumVariables(); i++){
+        b(i) = vconst[i];
+        for(std::size_t j(0); j < solver.getNumVariables(); j++){
+            A(i,j) = mcoeff[solver.flatIdx(j,i)];
+        }
+    }
+
+    vec sol(arma::solve(A,b));
+
+    msgs::Quadratic f;
+    msgs::QuadraticSpline solution;
+    int bound_idx(0);
+    solution.lower_bound.push_back((*points_)[bound_idx].first);
+    solution.upper_bound.push_back((*points_)[bound_idx+1].first);
+    f.a = 0; f.b = sol(0); f.c = sol(1);
+    solution.f.emplace_back(std::move(f));
+    for(std::size_t i(2); i < solver.getNumVariables(); i+=3){
+        ++bound_idx;
+        solution.lower_bound.push_back((*points_)[bound_idx].first);
+        solution.upper_bound.push_back((*points_)[bound_idx+1].first);
+        f.a = sol(i);
+        f.b = sol(i+1);
+        f.c = sol(i+2);
+        solution.f.emplace_back(std::move(f));
+    }
+
+    solution_ = solution;
+
+    A.print("A : ");
+    b.print("b : ");
+    sol.print("x : ");
 }
 
