@@ -23,7 +23,7 @@ RobotVel Kinematics::forwardKinematics(const MotorVel& _motor_vel){
 }
 
 MotorVel Kinematics::inverseKinematics(const RobotVel& _robot_vel){
-    return r_to_m *_robot_vel;
+    return r_to_m * _robot_vel;
 }
 
 MotorVel Kinematics::inverseKinematics_2(const RobotVel& _robot_vel){

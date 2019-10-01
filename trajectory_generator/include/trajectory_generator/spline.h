@@ -1,3 +1,6 @@
+/**
+*   @author : koseng (Lintang)
+*/
 #pragma once
 
 #include <msgs/QuadraticSpline.h>
@@ -8,6 +11,8 @@
 #include <armadillo>
 
 #include "trajectory_generator/gauss_seidel.h"
+
+//#define DEBUG_SPLINE
 
 using namespace arma;
 
@@ -29,7 +34,7 @@ private:
     Points* points_;
     PolyGroup* group_;
 
-    msgs::QuadraticSpline solution_;
+    msgs::QuadraticSpline* solution_;
 
 public:
     Spline();
@@ -43,8 +48,12 @@ public:
         points_->clear();
     }
 
-    inline msgs::QuadraticSpline getSolution() const{
+    inline msgs::QuadraticSpline* getSolution() const{
         return solution_;
+    }
+
+    inline std::size_t pointsSize() const{
+        return points_->size();
     }
 
     void solve();

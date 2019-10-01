@@ -53,6 +53,7 @@
   <depend>roslib</depend>
   <depend>msgs</depend>
   <depend>message_filters</depend>
+  <depend>kinematics</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

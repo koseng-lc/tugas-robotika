@@ -1,9 +1,9 @@
 #include "path_planning_monitor/ogmview.h"
 
-const int OGMView::MAP_HEIGHT(60);
-const int OGMView::MAP_WIDTH(90);
-const int OGMView::VIEW_HEIGHT(600);
-const int OGMView::VIEW_WIDTH(900);
+const int OGMView::MAP_HEIGHT(CELL_ROWS);
+const int OGMView::MAP_WIDTH(CELL_COLS);
+const int OGMView::VIEW_HEIGHT(500);
+const int OGMView::VIEW_WIDTH(500);
 
 OGMView::OGMView()
     : ogm_scene_(new QGraphicsScene)
@@ -106,10 +106,17 @@ void OGMView::updateScene(){
     ogm_scene_->clear();
     int map_x(0);
     int map_y(0);
+    constexpr int X_CENTER(MAP_WIDTH >> 1);
+    constexpr int Y_CENTER(MAP_HEIGHT >> 1);
     for(int w(0); w < VIEW_WIDTH; w += CELL_SIZE){
         for(int h(0); h < VIEW_HEIGHT; h += CELL_SIZE){
             map_x = w / CELL_SIZE;
             map_y = h / CELL_SIZE;
+
+            if(map_x == X_CENTER && map_y == Y_CENTER){
+                ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::magenta));
+                continue;
+            }
 
             auto v(vertice_data_.data[flatIdx(Point{map_x, map_y})]);
 

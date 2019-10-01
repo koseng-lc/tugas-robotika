@@ -6,7 +6,7 @@ int main(int argc, char** argv){
 
     Controller controller;
 
-    controller.start();
+    controller.routine();
 
     return 0;
 }

@@ -38,6 +38,8 @@ void MainWindow::spinThread(){
 
     motor_vel_pub_ = g_nh.advertise<msgs::MotorVel >("/vrep/motor/vel",1);
 
+    trajectory_sub_ = g_nh.subscribe("/trajectory/solution", 1, &MainWindow::trajectoryCb, this);
+
     ros::Rate loop_rate(60);
 
     while(ros::ok()){
@@ -46,6 +48,10 @@ void MainWindow::spinThread(){
         loop_rate.sleep();
     }
     spin_cv_.notify_one();
+}
+
+void MainWindow::trajectoryCb(const msgs::QuadraticSplineConstPtr &_msg){
+    trajectory_ = *_msg;
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *e){
@@ -152,7 +158,7 @@ void MainWindow::setupWidgets(){
     setupActions();
 
     //triggering first signal
-    delay_sb_->setValue(50);
+    delay_sb_->setValue(0);
 
 }
 

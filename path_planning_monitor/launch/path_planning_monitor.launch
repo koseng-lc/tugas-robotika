@@ -13,6 +13,15 @@
     <node pkg="trajectory_generator" name="trajectory_generator_node" type="trajectory_generator_node" output="screen">
 
     </node>
+
+    <node pkg="odometry" name="odometry_node" type="odometry_node" output="screen">
+
+    </node>
+
+    <node pkg="controller" name="controller_node" type="controller_node" output="screen">
+
+    </node>
+
 <!--    <node pkg="test" name="test_node" type="test_node" output="screen">
 
     </node>-->

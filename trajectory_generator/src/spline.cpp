@@ -2,7 +2,8 @@
 
 Spline::Spline()
     : points_(new Points)
-    , group_(new PolyGroup){
+    , group_(new PolyGroup)
+    , solution_(new msgs::QuadraticSpline){
 
 }
 
@@ -49,7 +50,6 @@ void Spline::solve(){
 
     //the rest of the const vector elements are zero
     ++y;
-    std::cout << y << std::endl;
     idx = 1;
     mcoeff[solver.flatIdx(0, y)] = 1.0;
     //--
@@ -75,9 +75,11 @@ void Spline::solve(){
     vconst[y] = points_->back().second;
     //--
 
+#ifdef DEBUG_SPLINE
     for(std::size_t i(0); i < solver.getCoeffSize(); i++){
         std::cout << "a(" << i%solver.getNumVariables() << i/solver.getNumVariables() << ") : " << mcoeff[i] << std::endl;
     }
+#endif
 
 //    solver.initCoeff(mcoeff);
 //    solver.initConst(vconst);
@@ -97,24 +99,31 @@ void Spline::solve(){
     msgs::Quadratic f;
     msgs::QuadraticSpline solution;
     int bound_idx(0);
-    solution.lower_bound.push_back((*points_)[bound_idx].first);
-    solution.upper_bound.push_back((*points_)[bound_idx+1].first);
+    solution.lower_boundx.push_back((*points_)[bound_idx].first);
+    solution.lower_boundy.push_back((*points_)[bound_idx].second);
+    solution.upper_boundx.push_back((*points_)[bound_idx+1].first);
+    solution.upper_boundy.push_back((*points_)[bound_idx+1].second);
     f.a = 0; f.b = sol(0); f.c = sol(1);
     solution.f.emplace_back(std::move(f));
     for(std::size_t i(2); i < solver.getNumVariables(); i+=3){
         ++bound_idx;
-        solution.lower_bound.push_back((*points_)[bound_idx].first);
-        solution.upper_bound.push_back((*points_)[bound_idx+1].first);
+        solution.lower_boundx.push_back((*points_)[bound_idx].first);
+        solution.lower_boundy.push_back((*points_)[bound_idx].second);
+        solution.upper_boundx.push_back((*points_)[bound_idx+1].first);
+        solution.upper_boundy.push_back((*points_)[bound_idx+1].second);
         f.a = sol(i);
         f.b = sol(i+1);
         f.c = sol(i+2);
         solution.f.emplace_back(std::move(f));
     }
 
-    solution_ = solution;
+    *solution_ = solution;
 
+#ifdef DEBUG_SPLINE
     A.print("A : ");
     b.print("b : ");
     sol.print("x : ");
+#endif
+
 }
 

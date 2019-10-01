@@ -25,8 +25,8 @@
 
 #include <boost/thread/thread.hpp>
 
-#define CELL_COLS 90
-#define CELL_ROWS 60
+#define CELL_COLS 50
+#define CELL_ROWS 50
 #define CELL_SIZE 10
 
 typedef message_filters::sync_policies::ApproximateTime<msgs::GridMapData,
@@ -49,7 +49,8 @@ enum VertexState{
     Unoccupied,
     Solution,
     Source,
-    Target
+    Target,
+    Robot
 };
 
 class OGMView:public QGraphicsView{

@@ -8,8 +8,8 @@
 
 #include "path_planning/ogm.h"
 
-#define CELL_COLS 90
-#define CELL_ROWS 60
+#define CELL_COLS 50
+#define CELL_ROWS 50
 #define CELL_SIZE 10
 
 typedef std::pair<int, int > Point;

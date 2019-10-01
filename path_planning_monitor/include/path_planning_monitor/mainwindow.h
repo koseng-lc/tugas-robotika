@@ -18,6 +18,7 @@
 
 #include <ros/ros.h>
 #include <msgs/MotorVel.h>
+#include <msgs/QuadraticSpline.h>
 
 #include <future>
 
@@ -71,6 +72,10 @@ private:
     boost::thread spin_thread_;
     void spinThread();
     ros::Publisher motor_vel_pub_;
+
+    msgs::QuadraticSpline trajectory_;
+    ros::Subscriber trajectory_sub_;
+    void trajectoryCb(const msgs::QuadraticSplineConstPtr &_msg);
 
 private slots:
     void updateScene();

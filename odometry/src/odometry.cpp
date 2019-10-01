@@ -1,77 +1,44 @@
-#include "odometry.h"
+#include "odometry/odometry.h"
 
-Odometry::Odometry()
-{
-    enable_ = false;
-    motor_velocity(3,1);
+Odometry::Odometry(){
 
-    config_path_ = ros::package::getPath("kinematics") + "/Data/config.yaml";
-    loadConfig();
-
-    boost::thread queue_thread_  = boost::thread(boost::bind(&Odometry::queueThread, this));
 }
 
-Odometry::~Odometry()
-{
+Odometry::~Odometry(){
+
 }
 
-void Odometry::queueThread()
-{
-    ros::Subscriber command_sub_ = nh_.subscribe("/odometry/command", 0, &Odometry::commandCallback, this);
-    ros::Subscriber motor_velocity_sub_ = nh_.subscribe("/kinematics/motor_velocity", 0, &Odometry::motorVelocityCallback, this);
-
-    odometry_pub_ = nh_.advertise<odometry_msgs::odometry>("/kinematics/odometry", 2);
+void Odometry::odometryInCb(const msgs::MotorVelConstPtr &_msg){
+    motor_vel_ = *_msg;
 }
 
-void Odometry::commandCallback(const std_msgs::String::ConstPtr &_msg)
-{
-    if(_msg->data == "start")
-        enable_ = true;
-    else if(_msg->data == "stop")
-        enable_ = false;
+void Odometry::process(){
+
+    RobotVel robot_vel(Kinematics::inst().forwardKinematics(
+                           MotorVel{
+                               motor_vel_.motor1,
+                               motor_vel_.motor2,
+                               motor_vel_.motor3
+                           }));
+
+    msgs::Odometry odometry;
+    odometry.dx = robot_vel(0) * SPIN_RATE;
+    odometry.dy = robot_vel(1) * SPIN_RATE;
+
+    odometry_out_pub_.publish(odometry);
+
 }
 
-void Odometry::motorVelocityCallback(const geometry_msgs::Vector3::ConstPtr &_msg)
-{
-    motor_velocity << _msg->x,
-                      _msg->y,
-                      _msg->z;
-}
+void Odometry::routine(){
 
-void Odometry::loadConfig()
-{
-    YAML::Node config_node;
+    odometry_in_sub_ = g_nh.subscribe("/odometry/in", 1, &Odometry::odometryInCb, this);
 
-    try
-    {
-        config_node = YAML::LoadFile(config_path_.c_str());
+    odometry_out_pub_ = g_nh.advertise<msgs::Odometry >("/odometry/out", 1);
+
+    ros::Rate loop_rate(SPIN_RATE);
+    while(ros::ok()){
+        ros::spinOnce();
+        process();
+        loop_rate.sleep();
     }
-    catch(const std::exception& e)
-    {
-        ROS_ERROR("Failed to load kinematic config");
-    }
-
-    YAML::Node config_ = config_node["Robot_Data"];
-
-    base_length = config_["Base_Length"].as<double>();
-    wheel_radius = config_["Wheel_Radius"].as<double>();
 }
-
-void Odometry::process()
-{
-    if(!enable_)
-        return;
-}
-
-inline double Odometry::radToDeg(double rad)
-{
-    return rad * 180 / PI;
-}
-
-inline double Odometry::degToRad(double deg)
-{
-    return deg * PI / 180;
-}
-
-
-

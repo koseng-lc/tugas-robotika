@@ -8,7 +8,8 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-    roscpp roslib msgs message_filters
+    roscpp roslib message_filters
+    msgs kinematics
 )
 
 ## System dependencies are found with CMake's conventions
@@ -102,9 +103,11 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
     INCLUDE_DIRS include
-    LIBRARIES spline
+    LIBRARIES spline kinematics
     #DEPENDS
-    CATKIN_DEPENDS roscpp roslib msgs message_filters
+    CATKIN_DEPENDS
+    roscpp roslib message_filters
+    msgs kinematics
 )
 
 ###########
@@ -144,7 +147,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 target_link_libraries(spline gauss_seidel armadillo)
 
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} spline)
+target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} spline kinematics)
 
 #############
 ## Install ##
