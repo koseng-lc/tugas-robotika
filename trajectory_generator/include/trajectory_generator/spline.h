@@ -56,6 +56,22 @@ public:
         return points_->size();
     }
 
+    static inline double getX(Point p){
+        return p.first;
+    }
+
+    static inline double getY(Point p){
+        return p.second;
+    }
+
+    static inline double& setX(Point& p){
+        return p.first;
+    }
+
+    static inline double& setY(Point& p){
+        return p.second;
+    }
+
     void solve();
 
 };

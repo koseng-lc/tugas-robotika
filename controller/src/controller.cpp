@@ -18,7 +18,7 @@ void Controller::motorVelCb(const msgs::MotorVelConstPtr &_msg){
 //    boost::mutex::scoped_lock lk(motor_vel_mtx_);
     motor_vel_data_ = *_msg;
     motor_vel_pub_.publish(motor_vel_data_);
-    std::cout << "MVEL : " << motor_vel_data_.motor1 << " ; " << motor_vel_data_.motor2 << " ; " << motor_vel_data_.motor3 << std::endl;
+
 }
 
 void Controller::routine(){
@@ -32,14 +32,14 @@ void Controller::routine(){
     ros::AsyncSpinner spinner(1, &custom_cb_);
 
     spinner.start();
-//    std::cout << "TEST1" << std::endl;
+
     ros::Rate loop_rate(120);
 
     while(ros::ok()){
 
         loop_rate.sleep();
     }
-//    std::cout << "TEST2" << std::endl;
+
     ros::waitForShutdown();
-//    std::cout << "TEST3" << std::endl;
+
 }

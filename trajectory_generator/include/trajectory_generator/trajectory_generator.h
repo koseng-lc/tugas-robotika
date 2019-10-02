@@ -8,6 +8,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/subscriber.h>
+#include <geometry_msgs/Pose2D.h>
 
 #include "trajectory_generator/spline.h"
 #include "kinematics/kinematics.h"
@@ -20,8 +21,8 @@ using Sync = message_filters::Synchronizer<SyncPolicies >;
 using Point = Spline::Point;
 using Points = Spline::Points;
 
-#define CELL_ROWS 60
-#define CELL_COLS 90
+#define CELL_ROWS 50
+#define CELL_COLS 50
 #define CELL_SIZE 10
 
 #define SPEED 2 // m/s
@@ -64,6 +65,8 @@ private:
     template <typename T> int sgn(T x){
         return x >= 0 ? 1 : -1;
     }
+
+    ros::Publisher robot_pose_pub_;
 
     Point robot_pos_;
     msgs::Odometry odometry_;

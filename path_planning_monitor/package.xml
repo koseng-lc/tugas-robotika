@@ -51,6 +51,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>roscpp</depend>
   <depend>roslib</depend>
+  <depend>geometry_msgs</depend>
   <depend>msgs</depend>
   <depend>kinematics</depend>
 

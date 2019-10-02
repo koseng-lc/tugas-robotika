@@ -8,7 +8,7 @@ add_compile_options(-std=c++11)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-    roscpp roslib message_filters
+    roscpp roslib message_filters geometry_msgs
     msgs kinematics
 )
 
@@ -106,7 +106,7 @@ catkin_package(
     LIBRARIES spline kinematics
     #DEPENDS
     CATKIN_DEPENDS
-    roscpp roslib message_filters
+    roscpp roslib message_filters geometry_msgs
     msgs kinematics
 )
 
@@ -126,7 +126,7 @@ add_library(gauss_seidel src/gauss_seidel.cpp)
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(spline ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context

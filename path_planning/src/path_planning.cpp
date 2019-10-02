@@ -70,8 +70,8 @@ void PathPlanning::extractSolution(Point _p){
     auto v{boost::vertex(Solver::flatIdx(_p.first, _p.second), *graph_)};
 
     geometry_msgs::Point p;
-    p.x = _p.first;
-    p.y = _p.second;
+    p.x = _p.first * CELL_SIZE;
+    p.y = _p.second * CELL_SIZE;
     path_.path.push_back(p);
 
     if((*graph_)[v].prev_idx != -1){

@@ -7,7 +7,10 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp roslib msgs kinematics message_filters)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp roslib message_filters geometry_msgs
+    msgs kinematics
+)
 
 set(Qt5Core_DIR /opt/qt59/lib/cmake/Qt5Core)
 set(Qt5Gui_DIR /opt/qt59/lib/cmake/Qt5Gui)
@@ -113,7 +116,7 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES kinematics
-    CATKIN_DEPENDS roscpp roslib msgs kinematics
+    CATKIN_DEPENDS roscpp roslib msgs kinematics geometry_msgs
     DEPENDS Qt5Core Qt5Gui Qt5Widgets Boost
 )
 
@@ -142,8 +145,10 @@ add_executable(${PROJECT_NAME}_node
     src/main.cpp
     src/mainwindow.cpp
     src/ogmview.cpp
+    src/trajectory_viewer.cpp
     include/path_planning_monitor/mainwindow.h
     include/path_planning_monitor/ogmview.h
+    include/${PROJECT_NAME}/trajectory_viewer.h
 )
 
 ## Rename C++ executable without prefix

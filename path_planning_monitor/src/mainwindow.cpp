@@ -155,6 +155,15 @@ void MainWindow::setupWidgets(){
 
     this->setCentralWidget(main_widget_);
 
+//    view_menu_ = new QMenu;
+    view_menu_ = this->menuBar()->addMenu(tr("Viewer"));
+    view_menu_list_.push_back(new QAction(tr("Trajectory Viewer")));
+    view_menu_->addActions(view_menu_list_);
+
+    trajectory_viewer_ = new TrajectoryViewer(this);
+    trajectory_viewer_->setWindowTitle(tr("Trajectory Viewer"));
+    trajectory_viewer_->hide();
+
     setupActions();
 
     //triggering first signal
@@ -170,11 +179,13 @@ void MainWindow::setupActions(){
     connect(set_occupancy_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
     connect(del_occupancy_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
 
-    connect(delay_sb_, SIGNAL(valueChanged(int)), this, SLOT(setDelay(int)));
+    connect(delay_sb_, SIGNAL(valueChanged(int)), this, SLOT(setDelay(int)));    
 
     update_timer_.setInterval(33);
     connect(&update_timer_, SIGNAL(timeout()), this, SLOT(updateScene()));
     update_timer_.start();
+
+    connect(view_menu_list_[0], SIGNAL(triggered(bool)), trajectory_viewer_, SLOT(show()));
 
 }
 

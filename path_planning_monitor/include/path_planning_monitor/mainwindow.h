@@ -24,7 +24,8 @@
 
 #include <boost/thread.hpp>
 
-#include "ogmview.h"
+#include "path_planning_monitor/ogmview.h"
+#include "path_planning_monitor/trajectory_viewer.h"
 #include "kinematics/kinematics.h"
 
 namespace Ui {
@@ -76,6 +77,10 @@ private:
     msgs::QuadraticSpline trajectory_;
     ros::Subscriber trajectory_sub_;
     void trajectoryCb(const msgs::QuadraticSplineConstPtr &_msg);
+
+    QMenu* view_menu_;
+    QList<QAction* > view_menu_list_;
+    TrajectoryViewer* trajectory_viewer_;
 
 private slots:
     void updateScene();

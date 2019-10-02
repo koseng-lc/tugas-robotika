@@ -7,16 +7,20 @@ TrajectoryGenerator::TrajectoryGenerator()
      , motor_vel_pub_(nh_.advertise<msgs::MotorVel>("/motor/vel", 1))
      , trajectory_pub_(nh_.advertise<msgs::QuadraticSpline>("/trajectory/solution", 1))
      , odometry_sub_(nh_.subscribe("/odometry/out", 1, &TrajectoryGenerator::odometryCb, this))
-     , solution(spline_.getSolution()){
+     , solution(spline_.getSolution())
+     , robot_pose_pub_(nh_.advertise<geometry_msgs::Pose2D>("/robot/pose", 1)){
 
     sync_.registerCallback(boost::bind(&TrajectoryGenerator::inputUtilsCb, this, _1, _2));
 //    path_.header.seq = 0;
 
     //initialize PD Controller
-    kP = 10;
-    kD = 5;
+    kP = 0.1;
+    kD = 0.01;
     errorx = errory = 0;
     prev_errorx = prev_errory = 0;
+
+    Spline::setX(robot_pos_) = 500 * .5;
+    Spline::setY(robot_pos_) = 500 * .5;
 
 }
 
@@ -25,6 +29,7 @@ TrajectoryGenerator::~TrajectoryGenerator(){
 }
 
 void TrajectoryGenerator::inputUtilsCb(const msgs::PathConstPtr &_path, const msgs::VerticeDataConstPtr &_vertice){
+
     path_ = *_path;
     vertice_ = *_vertice;
 
@@ -33,8 +38,9 @@ void TrajectoryGenerator::inputUtilsCb(const msgs::PathConstPtr &_path, const ms
 
 void TrajectoryGenerator::odometryCb(const msgs::OdometryConstPtr &_msg){
     odometry_ = *_msg;
-    robot_pos_.first += odometry_.dx;
-    robot_pos_.second += odometry_.dy;
+//    std::cout << "Odometer Read : " << odometry_.dx << " ; " << odometry_.dy << std::endl;
+    Spline::setX(robot_pos_) += odometry_.dx;
+    Spline::setY(robot_pos_) += odometry_.dy;
 }
 
 void TrajectoryGenerator::getKnots(){
@@ -43,9 +49,9 @@ void TrajectoryGenerator::getKnots(){
     knots_.push_back(curr_knot);
     double y(0);
     double x(0);
-    int knot_idx(path_.path.size()-1);
+    int knot_idx(path_.path.size() - 1);
 //    std::cout << "Size : " << path_.path.size() << std::endl;
-    for(int idx(path_.path.size()-2); idx >= 0; idx--){
+    for(int idx(path_.path.size() - 2); idx >= 0; idx--){
         pres_pt = Point{path_.path[idx].x, path_.path[idx].y};
         double dx(pres_pt.first - curr_knot.first);
         double grad((pres_pt.second - curr_knot.second) / (dx == 0 ? 1e-6  : dx));
@@ -54,16 +60,16 @@ void TrajectoryGenerator::getKnots(){
         for(int idx2(knot_idx); idx2 >= idx; idx2--){
             if(std::fabs(grad) <= .5){
                 x = path_.path[idx2].x;
-                y = (double)curr_knot.second + grad * (x - (double)curr_knot.first);
+                y = (double)curr_knot.second + grad * (x - (double)Spline::getX(curr_knot));
             }else{
                 y = path_.path[idx2].y;
                 x = (double)curr_knot.first + (y - (double)curr_knot.second) / grad;
             }
 //            std::cout << "IDX : " << idx << " ; " << idx2 << std::endl;
 //            std::cout << "(X,Y)" << x << "," << y << std::endl;
-            if(vertice_.data[flatIdx(Point{(int)x, (int)y})].state == 2){// Occupied
+            if(vertice_.data[flatIdx(Point{(int)x / CELL_SIZE, (int)y / CELL_SIZE})].state == 2){// Occupied
 //                std::cout << "There is obstacle !!!" << std::endl;
-                curr_knot = Point{pres_pt.first, pres_pt.second};
+                curr_knot = Point{Spline::getX(pres_pt), Spline::getY(pres_pt)};
                 knot_idx = idx;
                 knots_.push_back(curr_knot);
                 break;
@@ -76,10 +82,10 @@ void TrajectoryGenerator::getKnots(){
 void TrajectoryGenerator::process(){
     static auto seq(0);
     static std::size_t knots_size(0);
-    if(path_.header.seq > seq){
-        robot_pos_.first = path_.path.front().x;
-        robot_pos_.second = path_.path.back().y;
 
+    if(path_.header.seq > seq){
+        Spline::setX(robot_pos_) = path_.path.back().x;
+        Spline::setY(robot_pos_) = path_.path.back().y;
         getKnots();
 
         for(auto k:knots_){
@@ -104,29 +110,34 @@ void TrajectoryGenerator::process(){
 
         trajectory_pub_.publish(*solution);
     }
-    std::cout << "TEST1" << std::endl;
-    std::cout << solution->f.size() << std::endl;
+
     if(solution->f.size() == 0) return;
-    std::cout << "TEST2" << std::endl;
-    int target2robot_x(robot_pos_.first - path_.path.front().x);
-    int target2robot_y(robot_pos_.second - path_.path.front().y);
-    std::cout << "TEST3" << std::endl;
+
+    int target2robot_x(Spline::getX(robot_pos_) - path_.path.front().x);
+    int target2robot_y(Spline::getY(robot_pos_) - path_.path.front().y);
+
     if(std::sqrt(target2robot_x*target2robot_x + target2robot_y*target2robot_y) < DISTANCE_TOLERANCE){
-        std::cout << "TEST4" << std::endl;
         solution->f.clear();
     }
 
     //-- Controller
 
-    int piece_wise_idx(0);
+//    int piece_wise_idx(0);
     int min_dist(std::numeric_limits<int>::max());
 
-    for(std::size_t i(0); i < (knots_size - 1); i++){
-        double dx1(robot_pos_.first - knots_[i].first);
-        double dy1(robot_pos_.second - knots_[i].second);
-        double dx2(robot_pos_.first - knots_[i+1].first);
-        double dy2(robot_pos_.second - knots_[i+1].second);
+    double xref;
+    double yref;
 
+    //-- first concept
+    /*for(std::size_t i(0); i < (knots_size - 1); i++){
+        double dx1(Spline::getX(robot_pos_) - Spline::getX(knots_[i]));
+        double dy1(Spline::getY(robot_pos_) - Spline::getY(knots_[i]));
+        double dx2(Spline::getX(robot_pos_) - Spline::getX(knots_[i+1]));
+        double dy2(Spline::getY(robot_pos_) - Spline::getY(knots_[i+1]));
+
+        msgs::Quadratic f(solution->f[i]);
+
+        std::cout << "Dist to piece-wise " << i << " : " << xref << " , " << yref << std::endl;
         if(sgn(dy1/(dx1 == 0 ? 1e-6 : dx1)) != sgn(dy2/(dx2 == 0 ? 1e-6 : dx2))){
             auto dist(std::sqrt(dx1*dx1 + dy1*dy1) + std::sqrt(dx2*dx2 + dy2*dy2));
             if(dist < min_dist){
@@ -137,13 +148,34 @@ void TrajectoryGenerator::process(){
 
     }
 
-    msgs::Quadratic f(solution->f[piece_wise_idx]);
+    // Add little bit code here
+    // to handle the selected(piece_wise_idx) function
+    */
 
-    double xref((-f.b + std::sqrt(f.b*f.b - 4.0 * f.a * (f.c - robot_pos_.second))) / 2.0 * f.a);
-    double yref(f.a * robot_pos_.first * robot_pos_.first + f.b * robot_pos_.first + f.c);
+    //-- second concept
+    for(std::size_t i(0); i < (knots_size - 1); i++){
 
-    errorx = robot_pos_.first - xref;
-    errory = robot_pos_.second - yref;
+        msgs::Quadratic f(solution->f[i]);
+
+        double x = (i == 0 ?
+                        (Spline::getY(robot_pos_) - f.c) / f.b :
+                        (-f.b + std::sqrt(f.b*f.b - 4.0 * f.a * (f.c - Spline::getY(robot_pos_)))) / (2.0 * f.a));
+        double y = (f.a * Spline::getX(robot_pos_) * Spline::getX(robot_pos_) + f.b * Spline::getX(robot_pos_) + f.c);
+
+        std::cout << "Ref to piece-wise " << i << " : " << xref << " , " << yref << std::endl;
+        double dx(Spline::getX(robot_pos_) - x);
+        double dy(Spline::getY(robot_pos_) - y);
+        auto dist(std::sqrt(dx*dx + dy*dy));
+        if(dist < min_dist){
+            xref = x;
+            yref = y;
+            min_dist = dist;
+        }
+
+    }
+
+    errorx = Spline::getX(robot_pos_) - xref;
+    errory = Spline::getY(robot_pos_) - yref;
 
     prev_errorx = errorx;
     prev_errory = errory;
@@ -159,15 +191,27 @@ void TrajectoryGenerator::process(){
     auto inputy(vely + kP * errory + kD * (errory - prev_errory));
 
     RobotVel rvel;
-    rvel << inputx << endr << inputy << endr << .0 << endr;
+    rvel << -inputx << endr << inputy << endr << .0 << endr;
     MotorVel mvel(Kinematics::inst().inverseKinematics(rvel));
 
     motor_vel_.motor1 = mvel(0);
     motor_vel_.motor2 = mvel(1);
     motor_vel_.motor3 = mvel(2);
 
-//    rvel.print("RVel : ");
-//    mvel.print("MVel : ");
+    std::cout << "===========================================================" << std::endl;
+//    std::cout << "Piece-wise idx : " << piece_wise_idx << std::endl;
+    for(auto f:solution->f)
+        std::cout << f.a << " ; " << f.b << " ; " << f.c << std::endl;
+    std::cout << "Robot Pos : " << Spline::getX(robot_pos_) << " ; " << Spline::getY(robot_pos_) << std::endl;
+    std::cout << "XRef : " << xref << " ; YRef : " << yref << std::endl;
+    std::cout << "Error X : " << errorx << " ; Error Y : " << errory << std::endl;
+    rvel.print("RVel : ");
+    mvel.print("MVel : ");
+
+    geometry_msgs::Pose2D robot_pose;
+    robot_pose.x = Spline::getX(robot_pos_);
+    robot_pose.y = Spline::getY(robot_pos_) ;
+    robot_pose_pub_.publish(robot_pose);
 
     motor_vel_pub_.publish(motor_vel_);
 
