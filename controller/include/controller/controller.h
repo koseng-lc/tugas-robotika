@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Motor data transmitter(to VREP)
+*/
+
 #pragma once
 
 #include <ros/ros.h>
@@ -5,6 +10,9 @@
 #include <msgs/MotorVel.h>
 
 #include <boost/thread.hpp>
+
+//just temporary
+#define MAX_MOTOR_SPEED 10
 
 class Controller{
 public:
@@ -26,5 +34,9 @@ private:
 
     boost::mutex routine_mtx_;
     boost::thread routine_thread_;
+
+    template <typename T> int sgn(T x){
+        return x >= 0 ? 1 : -1;
+    }
 
 };

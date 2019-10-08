@@ -1,8 +1,7 @@
 #include "path_planning/path_planning.h"
 
 PathPlanning::PathPlanning()
-    : gmd_pub_(nh_.advertise<msgs::GridMapData >("/grid_map/data", 1))
-    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 1))
+    : vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 1))
     , gmd_sub_(nh_.subscribe("/grid_map/data", 1, &PathPlanning::mapCb, this))
     , planner_in_sub_(nh_.subscribe("/path_planning/input", 1, &PathPlanning::plannerInCb, this))
     , path_pub_(nh_.advertise<msgs::Path >("/path_planning/path", 1)){
@@ -18,7 +17,8 @@ PathPlanning::PathPlanning()
 }
 
 PathPlanning::~PathPlanning(){
-    delete solver_;
+
+    delete solver_;    
 }
 
 void PathPlanning::plannerInCb(const msgs::PlannerInputConstPtr &_in){
@@ -30,10 +30,13 @@ void PathPlanning::plannerInCb(const msgs::PlannerInputConstPtr &_in){
 
     std::future<void> concurrency = std::async(std::launch::async, [this,source,target]{
         solver_->reinit();
-        solver_->solve();
+        while(!solver_->isFinished()){
+            solver_->solvePerStep();
+            publishData();
+        }
         extractSolution(target);
-        publishData();
         publishSolution();
+        publishData();
     });
 }
 
@@ -47,9 +50,11 @@ void PathPlanning::mapCb(const msgs::GridMapDataConstPtr &_map_data){
             for(int y(0); y < CELL_ROWS; y++){
                 idx = Solver::flatIdx(x, y);
                 ogm_->map_(x, y) = map_data_.m[idx];
+                v = boost::vertex(idx, *graph_);
                 if(ogm_->map_(x, y) == 1.0){
-                    v = boost::vertex(idx, *graph_);
                     (*graph_)[v].state = Occupied;
+                }else if(ogm_->map_(x, y) == .0){
+                    (*graph_)[v].state = Unoccupied;
                 }
             }
         }
@@ -57,7 +62,7 @@ void PathPlanning::mapCb(const msgs::GridMapDataConstPtr &_map_data){
 }
 
 void PathPlanning::routine(){
-    ros::Rate loop_rate(60);
+    ros::Rate loop_rate(5);
 
     while(ros::ok()){
         ros::spinOnce();
@@ -67,11 +72,11 @@ void PathPlanning::routine(){
 }
 
 void PathPlanning::extractSolution(Point _p){
-    auto v{boost::vertex(Solver::flatIdx(_p.first, _p.second), *graph_)};
+    auto v{boost::vertex(Solver::flatIdx(Solver::getX(_p), Solver::getY(_p)), *graph_)};
 
     geometry_msgs::Point p;
-    p.x = _p.first * CELL_SIZE;
-    p.y = _p.second * CELL_SIZE;
+    p.x = Solver::getX(_p) * CELL_SIZE;
+    p.y = Solver::getY(_p) * CELL_SIZE;
     path_.path.push_back(p);
 
     if((*graph_)[v].prev_idx != -1){
@@ -98,7 +103,6 @@ void PathPlanning::publishData(){
         for(int y(0); y < CELL_ROWS; y++){
             idx = Solver::flatIdx(x, y);
             v = boost::vertex(idx, *graph_);
-            map_data_.m[idx] = ogm_->map_(x, y);
             vertice_data_.data[idx].prev_idx = (*graph_)[v].prev_idx;
             vertice_data_.data[idx].state = (*graph_)[v].state;
             vertice_data_.data[idx].total_dist = (*graph_)[v].total_dist;
@@ -106,14 +110,9 @@ void PathPlanning::publishData(){
     }
 
     ros::Time now(ros::Time::now());
-    map_data_.header.seq++;
-    map_data_.header.stamp = now;
-    map_data_.header.frame_id = "path_planning";
-
     vertice_data_.header.seq++;
     vertice_data_.header.stamp = now;
     vertice_data_.header.frame_id = "path_planning";
 
-    gmd_pub_.publish(map_data_);
     vd_pub_.publish(vertice_data_);
 }

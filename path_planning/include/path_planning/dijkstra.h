@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Simple implementation of Dijkstra Algorithm for path planning
+*/
+
 /*
  * Update connectivity from 8 to 4 which is approximation of L1 metric
 */
@@ -21,7 +26,14 @@ public:
 
 private:
     void solve();
+    void solvePerStep();
     void reinit();
 
+    Vertex curr_vtx_;
+    Vertex target_vtx_;
+    Vertex next_;
+    std::queue<Vertex > unvisited_set_;
+
+    boost::mutex finished_mtx_;
 };
 

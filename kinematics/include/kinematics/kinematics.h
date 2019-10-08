@@ -1,3 +1,9 @@
+/**
+*   @author : koseng (Lintang) & Gabrielle
+*   @brief : Three-omniwheel kinematics
+*/
+
+
 #pragma once
 
 #include <ros/ros.h>
@@ -18,14 +24,10 @@ public:
     MotorVel inverseKinematics(const RobotVel& _robot_vel);
 
     MotorVel inverseKinematics_2(const RobotVel& _robot_vel);
+    RobotVel forwardKinematics_2(const MotorVel& _motor_vel);
 
     mat33 r_to_m;
     mat33 m_to_r;
-
-//    mat33 motor;
-//    RobotVel velocity;
-//    MotorVel motor_velocity;
-//    double velocity_phi;
 
     static Kinematics& inst(){
         static Kinematics instance;

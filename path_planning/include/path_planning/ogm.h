@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Occupancy Grid Mapping (not finished yet)
+*/
+
 #pragma once
 
 #include <boost/numeric/ublas/matrix.hpp>

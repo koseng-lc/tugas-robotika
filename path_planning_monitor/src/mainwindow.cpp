@@ -8,11 +8,19 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->removeToolBar(ui->mainToolBar);
 
-    QFile qss_file("/home/koseng/p/test-mp/dark_style_lintang.qss");
+    std::stringstream icon_path;
+    icon_path << ros::package::getPath("path_planning_monitor") << "/gui/Logo_Universitas_Gadjah_Mada.png";
+    QIcon icon;
+    icon.addFile(icon_path.str().c_str());
+    this->setWindowIcon(icon);
+
+    std::stringstream qss_path;
+    qss_path << ros::package::getPath("path_planning_monitor") << "/gui/dark_style_lintang.qss" ;
+    QFile qss_file(qss_path.str().c_str());
     qss_file.open(QFile::ReadOnly);
     QString qss(qss_file.readAll());
     this->setStyleSheet(qss);
-    this->setWindowTitle(tr("Path Planner"));
+    this->setWindowTitle(tr("Path Planning Monitor"));
 
     setupWidgets();
 
@@ -36,9 +44,11 @@ MainWindow::~MainWindow(){
 void MainWindow::spinThread(){
     ros::NodeHandle g_nh;
 
-    motor_vel_pub_ = g_nh.advertise<msgs::MotorVel >("/vrep/motor/vel",1);
+    motor_vel_pub_ = g_nh.advertise<msgs::MotorVel >("/vrep/motor/vel", 1);
 
     trajectory_sub_ = g_nh.subscribe("/trajectory/solution", 1, &MainWindow::trajectoryCb, this);
+
+    reset_robot_pub_ = g_nh.advertise<std_msgs::Empty >("/vrep/reset_robot", 1);
 
     ros::Rate loop_rate(60);
 
@@ -63,31 +73,34 @@ void MainWindow::keyPressEvent(QKeyEvent *e){
 
     switch(k){
     case Qt::Key_Up:{
-        vy = 500;
+        vy = 10;
     }break;
     case Qt::Key_Down:{
-        vy = -500;
+        vy = -10;
     }break;
     case Qt::Key_Right:{
-        vx = 500;
+        vx = 10;
     }break;
     case Qt::Key_Left:{
-        vx = -500;
+        vx = -10;
     }break;
     case Qt::Key_Z:{
-        vz = 500;
+        vz = 10;
     }break;
     case Qt::Key_C:{
-        vz = -500;
+        vz = -10;
     }break;
     default:break;
     }
 
+//    MotorVel motor_vel = Kinematics::inst().inverseKinematics(RobotVel{vx,vy,vz});
+
     MotorVel motor_vel = Kinematics::inst().inverseKinematics_2(RobotVel{vx,vy,vz});
+
     msgs::MotorVel motor_vel_data;
     motor_vel_data.motor1 = motor_vel.at(0);
     motor_vel_data.motor2 = motor_vel.at(1);
-    motor_vel_data.motor3 = motor_vel.at(2);
+    motor_vel_data.motor3 = motor_vel.at(2);    
 
     motor_vel_pub_.publish(motor_vel_data);
 
@@ -115,19 +128,15 @@ void MainWindow::setupWidgets(){
     del_occupancy_rb_->setText(tr("Del Occupancy"));
 
     mode_layout_ = new QGridLayout;
-    mode_layout_->addWidget(start_rb_,0,0,1,1);
-    mode_layout_->addWidget(dest_rb_,1,0,1,1);
+    mode_layout_->addWidget(start_rb_,        0,0,1,1);
+    mode_layout_->addWidget(dest_rb_,         1,0,1,1);
     mode_layout_->addWidget(set_occupancy_rb_,2,0,1,1);
     mode_layout_->addWidget(del_occupancy_rb_,3,0,1,1);
-    mode_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),4,0);
-//    mode_layout_->setRowStretch(4,1);
+//    mode_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),4,0);
 
     mode_gb_ = new QGroupBox;
     mode_gb_->setLayout(mode_layout_);
     mode_gb_->setTitle(tr("Mode"));
-
-    solve_pb_ = new QPushButton;
-    solve_pb_->setText(tr("Solve"));
 
     delay_label_ = new QLabel;
     delay_label_->setText(tr("Delay : "));
@@ -137,18 +146,25 @@ void MainWindow::setupWidgets(){
     misc_layout_ = new QGridLayout;
     misc_layout_->addWidget(delay_label_,0,0,1,1);
     misc_layout_->addWidget(delay_sb_,   0,1,1,1);
-    misc_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Ignored,QSizePolicy::Expanding),1,2);
+//    misc_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Ignored,QSizePolicy::Expanding),1,2);
 
     misc_gb_ = new QGroupBox;
     misc_gb_->setLayout(misc_layout_);
     misc_gb_->setTitle(tr("Misc."));
 
+    solve_pb_ = new QPushButton;
+    solve_pb_->setText(tr("Solve"));
+
+    reset_robot_pb_ = new QPushButton;
+    reset_robot_pb_->setText(tr("Reset Robot"));
+
     main_layout_ = new QGridLayout;
-    main_layout_->addWidget(ogm_view_,  0,0,4,1);
-    main_layout_->addWidget(mode_gb_,   0,1,1,1);
-    main_layout_->addWidget(misc_gb_,   1,1,1,1);
-    main_layout_->addWidget(solve_pb_,  2,1,1,1);
-    main_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),3,2);
+    main_layout_->addWidget(ogm_view_,      0,0,5,1);
+    main_layout_->addWidget(mode_gb_,       0,1,1,1);
+    main_layout_->addWidget(misc_gb_,       1,1,1,1);
+    main_layout_->addWidget(solve_pb_,      2,1,1,1);
+    main_layout_->addWidget(reset_robot_pb_,3,1,1,1);
+    main_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),4,2);
 
     main_widget_ = new QWidget;
     main_widget_->setLayout(main_layout_);
@@ -173,6 +189,7 @@ void MainWindow::setupWidgets(){
 
 void MainWindow::setupActions(){
     connect(solve_pb_, SIGNAL(clicked(bool)), ogm_view_, SLOT(solve()));
+    connect(reset_robot_pb_, SIGNAL(clicked(bool)), this, SLOT(resetRobot()));
 
     connect(start_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
     connect(dest_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
@@ -204,4 +221,9 @@ void MainWindow::modeRBActions(){
     }else if(subject == del_occupancy_rb_){
         ogm_view_->setMode(DelOccupancy);
     }
+}
+
+void MainWindow::resetRobot(){
+    std_msgs::Empty msg;
+    reset_robot_pub_.publish(msg);
 }

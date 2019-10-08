@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Path Planning input-output handle class
+*/
+
 #pragma once
 
 #include <ros/ros.h>
@@ -24,7 +29,6 @@ private:
     ros::Subscriber planner_in_sub_;
     void plannerInCb(const msgs::PlannerInputConstPtr& _in);
 
-    ros::Publisher gmd_pub_;
     ros::Publisher vd_pub_;
 
     ros::Subscriber gmd_sub_;
@@ -44,5 +48,8 @@ private:
     Solver* solver_;
     Graph* graph_;
     OGM* ogm_;
+
+    //--------------------------------------------------------------
+
 
 };

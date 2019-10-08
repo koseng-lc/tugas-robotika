@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Trajectory Generator to get robot trajectory reference + PD Controller
+*/
+
 #pragma once
 
 #include <ros/ros.h>
@@ -25,9 +30,9 @@ using Points = Spline::Points;
 #define CELL_COLS 50
 #define CELL_SIZE 10
 
-#define SPEED 2 // m/s
+#define SPEED 10 // cm/s
 
-#define DISTANCE_TOLERANCE 10
+#define DISTANCE_TOLERANCE 5 // cm
 
 class TrajectoryGenerator{
 public:
@@ -48,13 +53,19 @@ private:
     msgs::MotorVel motor_vel_;
     ros::Publisher motor_vel_pub_;
 
-    ros::Publisher trajectory_pub_;
+    ros::Publisher trajectoryx_pub_;
+    ros::Publisher trajectoryy_pub_;
 
     Points knots_;
-    Spline spline_;
-    msgs::QuadraticSpline* solution;
+    Spline spline_x_;
+    Spline spline_y_;
+    msgs::QuadraticSpline* solutionx;
+    msgs::QuadraticSpline* solutiony;
+    int piece_wise_idx_;
 
     void getKnots();
+
+    Point calcReference();
 
     void process();
 
@@ -68,6 +79,7 @@ private:
 
     ros::Publisher robot_pose_pub_;
 
+    double mileage_;
     Point robot_pos_;
     msgs::Odometry odometry_;
     ros::Subscriber odometry_sub_;

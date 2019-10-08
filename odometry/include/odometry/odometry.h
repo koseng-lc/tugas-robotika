@@ -1,3 +1,9 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : X-Y Odometry
+*/
+
+
 #pragma once
 
 #include <ros/ros.h>
@@ -9,6 +15,8 @@
 #include "kinematics/kinematics.h"
 
 #define SPIN_RATE 120 // Hz
+
+#define MSEC2SEC 0.001
 
 class Odometry{
 public:

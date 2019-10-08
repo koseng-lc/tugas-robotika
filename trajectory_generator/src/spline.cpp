@@ -65,7 +65,7 @@ void Spline::solve(){
 
         mcoeff[solver.flatIdx(x+3,y)] = -2.0 * getX((*points_)[idx]);
         mcoeff[solver.flatIdx(x+4,y)] = -1.0;
-        x+=3;
+        x += 3;
     }
 
     //-- move the row here
@@ -103,6 +103,7 @@ void Spline::solve(){
     solution.lower_boundy.push_back(getY((*points_)[bound_idx]));
     solution.upper_boundx.push_back(getX((*points_)[bound_idx+1]));
     solution.upper_boundy.push_back(getY((*points_)[bound_idx+1]));
+    solution.upper_bound.push_back(getX((*points_)[bound_idx+1]));
     f.a = 0; f.b = sol(0); f.c = sol(1);
     solution.f.emplace_back(std::move(f));
     for(std::size_t i(2); i < solver.getNumVariables(); i+=3){
@@ -111,6 +112,7 @@ void Spline::solve(){
         solution.lower_boundy.push_back(getY((*points_)[bound_idx]));
         solution.upper_boundx.push_back(getX((*points_)[bound_idx+1]));
         solution.upper_boundy.push_back(getY((*points_)[bound_idx+1]));
+        solution.upper_bound.push_back(getX((*points_)[bound_idx+1]));
         f.a = sol(i);
         f.b = sol(i+1);
         f.c = sol(i+2);

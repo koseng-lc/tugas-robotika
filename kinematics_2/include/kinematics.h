@@ -1,3 +1,9 @@
+/**
+*   @author : Gabrielle
+*   @brief : Three-omniwheel kinematics
+*/
+
+
 #ifndef KINEMATICS_H_
 #define KINEMATICS_H_
 

@@ -1,17 +1,12 @@
 #include "path_planning_monitor/ogmview.h"
 
-const int OGMView::MAP_HEIGHT(CELL_ROWS);
-const int OGMView::MAP_WIDTH(CELL_COLS);
 const int OGMView::VIEW_HEIGHT(500);
 const int OGMView::VIEW_WIDTH(500);
 
 OGMView::OGMView()
     : ogm_scene_(new QGraphicsScene)
     , gmd_pub_(nh_.advertise<msgs::GridMapData >("/grid_map/data", 1))
-    , vd_pub_(nh_.advertise<msgs::VerticeData >("/vertice/data", 1))
-    , gmd_sub_(nh_, "/grid_map/data", 1)
-    , vd_sub_(nh_, "/vertice/data", 1)
-    , sync_(SyncPolicy(10), gmd_sub_, vd_sub_)
+    , vd_sub_(nh_.subscribe("/vertice/data", 1, &OGMView::verticeDataCb, this))
     , planner_in_pub_(nh_.advertise<msgs::PlannerInput >("/path_planning/input", 1)){
 
     init();
@@ -25,25 +20,24 @@ void OGMView::init(){
     this->setScene(ogm_scene_);
     this->setFixedSize(VIEW_WIDTH + 3, VIEW_HEIGHT + 3);
 
-    sync_.registerCallback(boost::bind(&OGMView::inputUtilsCb, this, _1, _2));
-
-    vertice_data_.data.resize(MAP_HEIGHT * MAP_WIDTH);
+    vertice_data_.data.resize(CELL_ROWS * CELL_COLS);
     for(auto& v:vertice_data_.data){
         v.prev_idx = -1;
         v.state = Unoccupied;
         v.total_dist = std::numeric_limits<double>::max();
     }
 
-    map_data_.m.resize(MAP_HEIGHT * MAP_WIDTH);
+    map_data_.m.resize(CELL_ROWS * CELL_COLS);
     for(auto& m:map_data_.m)
         m = .0;
 
+    start_ = Point{-1, -1};
+    dest_ = Point{-1, -1};
+
 }
 
-void OGMView::inputUtilsCb(const msgs::GridMapDataConstPtr& _gmd, const msgs::VerticeDataConstPtr& _vd){
-//    map_data_ = *_gmd;
+void OGMView::verticeDataCb(const msgs::VerticeDataConstPtr& _vd){
     vertice_data_ = *_vd;
-//    QFuture<void> future = QtConcurrent::run(boost::bind(&OGMView::extract, this));
 }
 
 void OGMView::pathCb(const msgs::PathConstPtr &_path){
@@ -79,22 +73,20 @@ void OGMView::updateState(){
             if(last_start.state != Solution)
                 last_start.state = Unoccupied;
             start_ = map_pos;
-            v.state = Source;            
+//            v.state = Source;
         }break;
         case Destination:{
             auto& last_dest(vertice_data_.data[flatIdx(dest_)]);
             if(last_dest.state != Solution)
                 last_dest.state = Unoccupied;
             dest_ = map_pos;
-            v.state = Target;
+//            v.state
         }break;
         case SetOccupancy:{
             map_data_.m[idx] = 1.0;
-            v.state = Occupied;
         }break;
         case DelOccupancy:{
             map_data_.m[idx] = .0;
-            v.state = Unoccupied;
         }break;
         default:break;
         }
@@ -106,8 +98,9 @@ void OGMView::updateScene(){
     ogm_scene_->clear();
     int map_x(0);
     int map_y(0);
-    constexpr int X_CENTER(MAP_WIDTH >> 1);
-    constexpr int Y_CENTER(MAP_HEIGHT >> 1);
+    int idx(0);
+    constexpr int X_CENTER(CELL_COLS >> 1);
+    constexpr int Y_CENTER(CELL_ROWS >> 1);
     for(int w(0); w < VIEW_WIDTH; w += CELL_SIZE){
         for(int h(0); h < VIEW_HEIGHT; h += CELL_SIZE){
             map_x = w / CELL_SIZE;
@@ -118,13 +111,28 @@ void OGMView::updateScene(){
                 continue;
             }
 
+            idx = flatIdx(Point{map_x, map_y});
+
+            ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue),
+                                QBrush(QColor(155.0 * map_data_.m[idx],
+                                              135.0 * map_data_.m[idx],
+                                              12.0 * map_data_.m[idx])));
+
             auto v(vertice_data_.data[flatIdx(Point{map_x, map_y})]);
 
+            if(start_ != Point{-1, -1} && start_ == Point{map_x, map_y})
+                ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::yellow));
+
+            if(dest_ != Point{-1, -1} && dest_ == Point{map_x, map_y})
+                ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::green));
+
+
+
             switch(v.state){
-            case Source:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::yellow));}break;
-            case Target:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::green));}break;
-            case Occupied:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::darkYellow));}break;
-            case Unoccupied:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::black));}break;
+//            case Source:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::yellow));}break;
+//            case Target:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::green));}break;
+//            case Occupied:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::darkYellow));}break;
+//            case Unoccupied:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::black));}break;
             case Solution:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::red));}break;
             case Visited:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::darkCyan));}break;
             case Unvisited:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::black));}break;

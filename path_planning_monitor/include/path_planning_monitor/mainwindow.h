@@ -1,5 +1,9 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+/**
+*   @author : koseng (Lintang)
+*   @brief : Main Window GUI
+*/
+
+#pragma once
 
 #include <QtCore>
 #include <QtGui>
@@ -17,6 +21,8 @@
 #include <QKeyEvent>
 
 #include <ros/ros.h>
+#include <ros/package.h>
+#include <std_msgs/Empty.h>
 #include <msgs/MotorVel.h>
 #include <msgs/QuadraticSpline.h>
 
@@ -60,13 +66,20 @@ private:
     QLabel* delay_label_;
 
     QPushButton* solve_pb_;
+    QPushButton* reset_robot_pb_;
 
     void setupWidgets();
     void setupActions();
 
     QTimer update_timer_;
 
-    void keyPressEvent(QKeyEvent *e);
+    void keyPressEvent(QKeyEvent *e);    
+
+    QMenu* view_menu_;
+    QList<QAction* > view_menu_list_;
+    TrajectoryViewer* trajectory_viewer_;
+
+    //-- ROS
 
     boost::condition_variable spin_cv_;
     boost::mutex spin_mtx_;
@@ -78,14 +91,13 @@ private:
     ros::Subscriber trajectory_sub_;
     void trajectoryCb(const msgs::QuadraticSplineConstPtr &_msg);
 
-    QMenu* view_menu_;
-    QList<QAction* > view_menu_list_;
-    TrajectoryViewer* trajectory_viewer_;
+    ros::Publisher reset_robot_pub_;
+
+    //--
 
 private slots:
     void updateScene();
     void modeRBActions();
     void setDelay(int val);
+    void resetRobot();
 };
-
-#endif // MAINWINDOW_H

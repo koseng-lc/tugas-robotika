@@ -1,6 +1,8 @@
 /**
 *   @author : koseng (Lintang)
+*   @brief : Simple implementation of Quadratic Spline
 */
+
 #pragma once
 
 #include <msgs/QuadraticSpline.h>
@@ -70,6 +72,11 @@ public:
 
     static inline double& setY(Point& p){
         return p.second;
+    }
+
+    static inline double distance(Point p1, Point p2){
+        return std::sqrt((getX(p1) - getX(p2))*(getX(p1) - getX(p2)) +
+                         (getY(p1) - getY(p2))*(getY(p1) - getY(p2)));
     }
 
     void solve();

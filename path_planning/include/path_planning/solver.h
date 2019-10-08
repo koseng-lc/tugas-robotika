@@ -1,3 +1,8 @@
+/**
+*   @author : koseng (Lintang)
+*   @brief : Abstract class for path planning solver
+*/
+
 #pragma once
 
 #include <queue>
@@ -54,13 +59,30 @@ public:
         return graph_;
     }
 
-    inline bool isFinishied() const{return finished_;}
+    inline bool isFinished() const{return finished_;}
     inline int& setDelay(){return delay_;}
     inline Point& setSource(){return source_;}
     inline Point& setTarget(){return target_;}
+
     static inline int flatIdx(int x, int y){return (y * CELL_COLS + x);}
+    static inline int getX(Point _p){
+        return _p.first;
+    }
+
+    static inline int getY(Point _p){
+        return _p.second;
+    }
+
+    static inline int& setX(Point& _p){
+        return _p.first;
+    }
+
+    static inline int& setY(Point& _p){
+        return _p.second;
+    }
 
     virtual void solve() = 0;
+    virtual void solvePerStep() = 0;
     virtual void reinit() = 0;
 protected:
     Point source_;

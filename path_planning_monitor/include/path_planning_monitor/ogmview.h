@@ -1,5 +1,9 @@
-#ifndef OGMVIEW_H
-#define OGMVIEW_H
+/**
+*   @author : koseng (Lintang)
+*   @brief : Occupancy Grid Mapping View
+*/
+
+#pragma once
 
 #include <QtCore>
 #include <QtGui>
@@ -19,19 +23,12 @@
 #include <msgs/VerticeData.h>
 #include <msgs/PlannerInput.h>
 #include <msgs/Path.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <message_filters/subscriber.h>
 
 #include <boost/thread/thread.hpp>
 
 #define CELL_COLS 50
 #define CELL_ROWS 50
 #define CELL_SIZE 10
-
-typedef message_filters::sync_policies::ApproximateTime<msgs::GridMapData,
-                                                        msgs::VerticeData > SyncPolicy;
-typedef message_filters::Synchronizer<SyncPolicy > Sync;
 
 typedef std::pair<int, int > Point;
 
@@ -61,9 +58,6 @@ public:
 
     QGraphicsScene* ogm_scene_;
 
-    static const int MAP_WIDTH;
-    static const int MAP_HEIGHT;
-
     static const int VIEW_WIDTH;
     static const int VIEW_HEIGHT;
 
@@ -85,11 +79,8 @@ private:
     void publishMap();
     double delay_;
 
-    message_filters::Subscriber<msgs::GridMapData > gmd_sub_;
-    message_filters::Subscriber<msgs::VerticeData > vd_sub_;
-    void inputUtilsCb(const msgs::GridMapDataConstPtr& _gmd, const msgs::VerticeDataConstPtr& _vd);
-
-    Sync sync_;
+    ros::Subscriber vd_sub_;
+    void verticeDataCb(const msgs::VerticeDataConstPtr& _vd);
 
     ros::Publisher planner_in_pub_;
     msgs::PlannerInput planner_in_;
@@ -119,5 +110,3 @@ private slots:
     void solve();
 
 };
-
-#endif // OGMVIEW_H
