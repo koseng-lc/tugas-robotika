@@ -3,8 +3,9 @@
 const int OGMView::VIEW_HEIGHT(500);
 const int OGMView::VIEW_WIDTH(500);
 
-OGMView::OGMView()
-    : ogm_scene_(new QGraphicsScene)
+OGMView::OGMView(QWidget* parent)
+    : QGraphicsView(parent)
+    , ogm_scene_(new QGraphicsScene)
     , gmd_pub_(nh_.advertise<msgs::GridMapData >("/grid_map/data", 1))
     , vd_sub_(nh_.subscribe("/vertice/data", 1, &OGMView::verticeDataCb, this))
     , planner_in_pub_(nh_.advertise<msgs::PlannerInput >("/path_planning/input", 1)){
@@ -109,16 +110,15 @@ void OGMView::updateScene(){
             if(map_x == X_CENTER && map_y == Y_CENTER){
                 ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::magenta));
                 continue;
-            }
+            }            
 
             idx = flatIdx(Point{map_x, map_y});
 
             ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue),
                                 QBrush(QColor(155.0 * map_data_.m[idx],
                                               135.0 * map_data_.m[idx],
-                                              12.0 * map_data_.m[idx])));
+                                              12.00 * map_data_.m[idx])));
 
-            auto v(vertice_data_.data[flatIdx(Point{map_x, map_y})]);
 
             if(start_ != Point{-1, -1} && start_ == Point{map_x, map_y})
                 ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::yellow));
@@ -126,7 +126,7 @@ void OGMView::updateScene(){
             if(dest_ != Point{-1, -1} && dest_ == Point{map_x, map_y})
                 ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::green));
 
-
+            auto v(vertice_data_.data[flatIdx(Point{map_x, map_y})]);
 
             switch(v.state){
 //            case Source:{ogm_scene_->addRect(w, h, CELL_SIZE, CELL_SIZE, QPen(Qt::darkBlue), QBrush(Qt::yellow));}break;
@@ -149,6 +149,19 @@ void OGMView::extract(){
 }
 
 void OGMView::solve(){
+
+    if(start_ == Point{-1,-1} || dest_ == Point{-1,-1}){
+        QMessageBox mb;
+        mb.setWindowTitle("Error");
+        mb.setText("Unable to solve path planning");
+        mb.setInformativeText("Please select the start or destination point !");
+        mb.setStandardButtons(QMessageBox::Ok);
+        mb.setDefaultButton(QMessageBox::Ok);
+        int ret(mb.exec());
+        (void)ret;
+        return;
+    }
+
     planner_in_.source.x = start_.first;
     planner_in_.source.y = start_.second;
     planner_in_.source.z = 0;

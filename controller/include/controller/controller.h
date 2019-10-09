@@ -12,7 +12,9 @@
 #include <boost/thread.hpp>
 
 //just temporary
-#define MAX_MOTOR_SPEED 10
+#define MAX_MOTOR_SPEED 10.0
+
+#define SPIN_RATE 120
 
 class Controller{
 public:

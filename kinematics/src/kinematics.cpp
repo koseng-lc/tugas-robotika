@@ -33,8 +33,8 @@ MotorVel Kinematics::inverseKinematics_2(const RobotVel& _robot_vel){
     motor << -sin(DEG2RAD * (90.0) + velocity_phi) << cos(DEG2RAD * (90.0) + velocity_phi) << RobotData::WHEEL_RAD << endr
           << -sin(DEG2RAD * (210.0) + velocity_phi) << cos(DEG2RAD * (210.0)  + velocity_phi) << RobotData::WHEEL_RAD << endr
           << -sin(DEG2RAD * (330.0) + velocity_phi) << cos(DEG2RAD * (330.0) + velocity_phi) << RobotData::WHEEL_RAD << endr;
-
     motor /= RobotData::WHEEL_RAD;
+
     return motor * _robot_vel;
 }
 
@@ -46,6 +46,8 @@ RobotVel Kinematics::forwardKinematics_2(const MotorVel &_motor_vel){
           << -sin(DEG2RAD * (210.0) + velocity_phi) << cos(DEG2RAD * (210.0)  + velocity_phi) << RobotData::WHEEL_RAD << endr
           << -sin(DEG2RAD * (330.0) + velocity_phi) << cos(DEG2RAD * (330.0) + velocity_phi) << RobotData::WHEEL_RAD << endr;
     motor /= RobotData::WHEEL_RAD;
+
     mat33 robot(inv(motor));
+
     return robot * _motor_vel;
 }

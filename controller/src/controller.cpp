@@ -17,14 +17,12 @@ void Controller::start(){
 void Controller::motorVelCb(const msgs::MotorVelConstPtr &_msg){
 //    boost::mutex::scoped_lock lk(motor_vel_mtx_);
     motor_vel_data_ = *_msg;
-    if(std::fabs(motor_vel_data_.motor1) > MAX_MOTOR_SPEED)
-        motor_vel_data_.motor1 = (double)sgn(motor_vel_data_.motor1) * MAX_MOTOR_SPEED;
 
-    if(std::fabs(motor_vel_data_.motor2) > MAX_MOTOR_SPEED)
-        motor_vel_data_.motor2 = (double)sgn(motor_vel_data_.motor2) * MAX_MOTOR_SPEED;
+    motor_vel_data_.motor1 = std::max(-MAX_MOTOR_SPEED, std::min(motor_vel_data_.motor1, MAX_MOTOR_SPEED));
 
-    if(std::fabs(motor_vel_data_.motor3) > MAX_MOTOR_SPEED)
-        motor_vel_data_.motor3 = (double)sgn(motor_vel_data_.motor3) * MAX_MOTOR_SPEED;
+    motor_vel_data_.motor2 = std::max(-MAX_MOTOR_SPEED, std::min(motor_vel_data_.motor2, MAX_MOTOR_SPEED));
+
+    motor_vel_data_.motor3 = std::max(-MAX_MOTOR_SPEED, std::min(motor_vel_data_.motor3, MAX_MOTOR_SPEED));
 
     motor_vel_pub_.publish(motor_vel_data_);
 
@@ -42,7 +40,7 @@ void Controller::routine(){
 
     spinner.start();
 
-    ros::Rate loop_rate(120);
+    ros::Rate loop_rate(SPIN_RATE);
 
     while(ros::ok()){
 

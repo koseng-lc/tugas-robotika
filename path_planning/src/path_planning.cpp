@@ -29,14 +29,19 @@ void PathPlanning::plannerInCb(const msgs::PlannerInputConstPtr &_in){
     solver_->setTarget() = target;
 
     std::future<void> concurrency = std::async(std::launch::async, [this,source,target]{
-        solver_->reinit();
-        while(!solver_->isFinished()){
-            solver_->solvePerStep();
-            publishData();
+        if(solver_->getDelay() == 0){
+            solver_->solve();
+        }else{
+            solver_->reinit();
+            while(!solver_->isFinished()){
+                solver_->solvePerStep();
+                publishData();
+            }
         }
         extractSolution(target);
         publishSolution();
         publishData();
+
     });
 }
 
@@ -58,6 +63,7 @@ void PathPlanning::mapCb(const msgs::GridMapDataConstPtr &_map_data){
                 }
             }
         }
+        publishData();
     });
 }
 

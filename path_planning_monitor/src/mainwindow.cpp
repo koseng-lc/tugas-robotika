@@ -111,7 +111,7 @@ void MainWindow::updateScene(){
 }
 
 void MainWindow::setupWidgets(){
-    ogm_view_ = new OGMView;
+    ogm_view_ = new OGMView(this);
     ogm_view_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ogm_view_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 

@@ -275,8 +275,6 @@ void TrajectoryGenerator::process(){
         ++piece_wise_idx;
     }*/
 
-
-
     errorx = Spline::getX(robot_pos_) - Spline::getX(ref);
     errory = Spline::getY(robot_pos_) - Spline::getY(ref);
 
@@ -302,23 +300,23 @@ void TrajectoryGenerator::process(){
     motor_vel_.motor2 = mvel(1);
     motor_vel_.motor3 = mvel(2);
 
-    std::cout << "===========================================================" << std::endl;
+//    std::cout << "===========================================================" << std::endl;
 //    std::cout << "Piece-wise idx : " << piece_wise_idx << std::endl;
 //    for(auto f:solution->f)
 //        std::cout << f.a << " ; " << f.b << " ; " << f.c << std::endl;
 //    for(std::size_t i(0); i < solutionx->f.size(); i++){
 
 //    }
-    std::cout << "Robot Pos : " << Spline::getX(robot_pos_) << " ; " << Spline::getY(robot_pos_) << std::endl;
-    std::cout << "XRef : " << Spline::getX(ref) << " ; YRef : " << Spline::getY(ref) << std::endl;
-    std::cout << "Error X : " << errorx << " ; Error Y : " << errory << std::endl;
-    std::cout << "Input : " << inputx << "," << inputy << std::endl;
-    std::cout << "Mileage : " << mileage_ << std::endl;
-    std::cout << "Bearing : " << (bearing * 180.0 / M_PI) << std::endl;
-    std::cout << "Upper bound : " << solutionx->upper_bound[piece_wise_idx_] << std::endl;
+//    std::cout << "Robot Pos : " << Spline::getX(robot_pos_) << " ; " << Spline::getY(robot_pos_) << std::endl;
+//    std::cout << "XRef : " << Spline::getX(ref) << " ; YRef : " << Spline::getY(ref) << std::endl;
+//    std::cout << "Error X : " << errorx << " ; Error Y : " << errory << std::endl;
+//    std::cout << "Input : " << inputx << "," << inputy << std::endl;
+//    std::cout << "Mileage : " << mileage_ << std::endl;
+//    std::cout << "Bearing : " << (bearing * 180.0 / M_PI) << std::endl;
+//    std::cout << "Upper bound : " << solutionx->upper_bound[piece_wise_idx_] << std::endl;
 
-    rvel.print("RVel : ");
-    mvel.print("MVel : ");
+//    rvel.print("RVel : ");
+//    mvel.print("MVel : ");
 
     geometry_msgs::Pose2D robot_pose;
     robot_pose.x = Spline::getX(robot_pos_);

@@ -53,7 +53,7 @@ enum VertexState{
 class OGMView:public QGraphicsView{
     Q_OBJECT
 public:
-    OGMView();
+    OGMView(QWidget* parent=0);
     ~OGMView();
 
     QGraphicsScene* ogm_scene_;

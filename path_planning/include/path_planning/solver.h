@@ -61,6 +61,7 @@ public:
 
     inline bool isFinished() const{return finished_;}
     inline int& setDelay(){return delay_;}
+    inline int getDelay() const{return delay_;}
     inline Point& setSource(){return source_;}
     inline Point& setTarget(){return target_;}
 
