@@ -31,7 +31,10 @@ private:
 
     ros::Subscriber odometry_in_sub_;
     msgs::MotorVel motor_vel_;
+
     void odometryInCb(const msgs::MotorVelConstPtr &_msg);
+
+    double odometry__[2];
 
     ros::Publisher odometry_out_pub_;
 

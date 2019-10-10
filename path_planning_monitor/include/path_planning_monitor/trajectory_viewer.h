@@ -49,6 +49,9 @@ private:
 
     QImage background_;
 
+    //--temporary
+    std::vector<geometry_msgs::Pose2D > robot_trajectory_;
+
 signals:
     void updateScene();
 

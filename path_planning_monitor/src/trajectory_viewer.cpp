@@ -50,13 +50,13 @@ void TrajectoryViewer::solutionCb(const msgs::QuadraticSplineConstPtr &_msgx,
                                   const msgs::QuadraticSplineConstPtr &_msgy){
     solx_ = *_msgx;
     soly_ = *_msgy;
-
+    robot_trajectory_.clear();
     emit updateScene();
 }
 
 void TrajectoryViewer::robotPoseCb(const geometry_msgs::Pose2DConstPtr &_msg){
     robot_pose_ = *_msg;
-
+    robot_trajectory_.push_back(robot_pose_);
     emit updateScene();
 }
 
@@ -127,6 +127,10 @@ void TrajectoryViewer::updateSceneAct(){
                            ROBOT_RAD << 1, ROBOT_RAD << 1,
                            QPen(Qt::yellow));
     }
+
+//    for(std::size_t i(0); i < robot_trajectory_.size(); i++){
+//        background_.setPixel(robot_trajectory_[i].x, robot_trajectory_[i].y, QColor(0,255,0).rgba());
+//    }
 
     scene_->update();
     background_.fill(QColor(100,100,100));

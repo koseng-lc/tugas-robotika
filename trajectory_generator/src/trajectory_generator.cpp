@@ -15,8 +15,8 @@ TrajectoryGenerator::TrajectoryGenerator()
     sync_.registerCallback(boost::bind(&TrajectoryGenerator::inputUtilsCb, this, _1, _2));
 
     //initialize PD Controller
-    kP = 3.5;
-    kD = 1.5;
+    kP = 150;
+    kD = 18;
     errorx = errory = 0;
     prev_errorx = prev_errory = 0;
 
@@ -98,9 +98,12 @@ Point TrajectoryGenerator::calcReference(){
 
     msgs::Quadratic fx(solutionx->f[piece_wise_idx_]);
     msgs::Quadratic fy(solutiony->f[piece_wise_idx_]);
+
+    auto mileage__ = mileage_;
+
     Point ref{
-        fx.a * mileage_ * mileage_ + fx.b * mileage_ + fx.c,
-        fy.a * mileage_ * mileage_ + fy.b * mileage_ + fy.c
+        fx.a * mileage__ * mileage__ + fx.b * mileage__ + fx.c,
+        fy.a * mileage__ * mileage__ + fy.b * mileage__ + fy.c
     };
 
     if(mileage_ >= solutionx->upper_bound[piece_wise_idx_])
@@ -285,8 +288,19 @@ void TrajectoryGenerator::process(){
     auto velx(SPEED * std::cos(bearing));
     auto vely(SPEED * std::sin(bearing));    
 
-    auto inputx(velx + kP * errorx + kD * (errorx - prev_errorx));
-    auto inputy(vely + kP * errory + kD * (errory - prev_errory));
+    auto sum_px = kP * errorx;
+    auto sum_py = kP * errory;
+    auto sum_dx = kD * (errorx - prev_errorx);
+    auto sum_dy = kD * (errory - prev_errory);
+
+    auto inputx(velx + sum_px + sum_dx);
+    auto inputy(velx + sum_py + sum_dy);
+
+//    if(fabs(inputx) <= 1.0)
+//        inputx = (double)sgn(inputx) * velx;
+
+//    if(fabs(inputy) <= 1.0)
+//        inputy = (double)sgn(inputy) * vely;
 
     prev_errorx = errorx;
     prev_errory = errory;
@@ -300,21 +314,24 @@ void TrajectoryGenerator::process(){
     motor_vel_.motor2 = mvel(1);
     motor_vel_.motor3 = mvel(2);
 
-//    std::cout << "===========================================================" << std::endl;
+    std::cout << "===========================================================" << std::endl;
 //    std::cout << "Piece-wise idx : " << piece_wise_idx << std::endl;
 //    for(auto f:solution->f)
 //        std::cout << f.a << " ; " << f.b << " ; " << f.c << std::endl;
 //    for(std::size_t i(0); i < solutionx->f.size(); i++){
 
 //    }
-//    std::cout << "Robot Pos : " << Spline::getX(robot_pos_) << " ; " << Spline::getY(robot_pos_) << std::endl;
-//    std::cout << "XRef : " << Spline::getX(ref) << " ; YRef : " << Spline::getY(ref) << std::endl;
-//    std::cout << "Error X : " << errorx << " ; Error Y : " << errory << std::endl;
+    std::cout << "Robot Pos : " << Spline::getX(robot_pos_) << " ; " << Spline::getY(robot_pos_) << std::endl;
+    std::cout << "XRef : " << Spline::getX(ref) << " ; YRef : " << Spline::getY(ref) << std::endl;
+    std::cout << "Error X : " << errorx << " ; Error Y : " << errory << std::endl;
+//    std::cout << "Prev Error X : " << prev_errorx << " ; Prev Error Y : " << errory << std::endl;
 //    std::cout << "Input : " << inputx << "," << inputy << std::endl;
 //    std::cout << "Mileage : " << mileage_ << std::endl;
 //    std::cout << "Bearing : " << (bearing * 180.0 / M_PI) << std::endl;
 //    std::cout << "Upper bound : " << solutionx->upper_bound[piece_wise_idx_] << std::endl;
-
+    std::cout << "Velocity    : " << velx << " , " << vely << std::endl;
+    std::cout << "Propotional : " << sum_px << " , " << sum_py << std::endl;
+    std::cout << "Derivative  : " << sum_dx << " , " << sum_dy << std::endl;
 //    rvel.print("RVel : ");
 //    mvel.print("MVel : ");
 
