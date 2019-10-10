@@ -40,12 +40,12 @@ void Controller::routine(){
 
     spinner.start();
 
-    ros::Rate loop_rate(SPIN_RATE);
+//    ros::Rate loop_rate(CONTROLLER_RATE);
 
-    while(ros::ok()){
+//    while(ros::ok()){
 
-        loop_rate.sleep();
-    }
+//        loop_rate.sleep();
+//    }
 
     ros::waitForShutdown();
 

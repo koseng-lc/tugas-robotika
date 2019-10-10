@@ -67,16 +67,6 @@ void PathPlanning::mapCb(const msgs::GridMapDataConstPtr &_map_data){
     });
 }
 
-void PathPlanning::routine(){
-    ros::Rate loop_rate(5);
-
-    while(ros::ok()){
-        ros::spinOnce();
-
-        loop_rate.sleep();
-    }
-}
-
 void PathPlanning::extractSolution(Point _p){
     auto v{boost::vertex(Solver::flatIdx(Solver::getX(_p), Solver::getY(_p)), *graph_)};
 
@@ -121,4 +111,13 @@ void PathPlanning::publishData(){
     vertice_data_.header.frame_id = "path_planning";
 
     vd_pub_.publish(vertice_data_);
+}
+
+void PathPlanning::routine(){
+    ros::Rate loop_rate(PATH_PLANNING_RATE);
+
+    while(ros::ok()){
+        ros::spinOnce();
+        loop_rate.sleep();
+    }
 }

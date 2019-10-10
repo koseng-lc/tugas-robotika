@@ -14,6 +14,7 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/subscriber.h>
 #include <geometry_msgs/Pose2D.h>
+#include <std_msgs/Empty.h>
 
 #include "trajectory_generator/spline.h"
 #include "kinematics/kinematics.h"
@@ -33,6 +34,8 @@ using Points = Spline::Points;
 #define SPEED 10 // cm/s
 
 #define DISTANCE_TOLERANCE 5 // cm
+
+#define TRAJECTORY_GENERATOR_RATE 30
 
 class TrajectoryGenerator{
 public:
@@ -84,6 +87,12 @@ private:
     msgs::Odometry odometry_;
     ros::Subscriber odometry_sub_;
     void odometryCb(const msgs::OdometryConstPtr &_msg);
+
+    ros::Subscriber reset_robot_sub_;
+    void resetRobotCb(const std_msgs::EmptyConstPtr &_msg);
+    void resetData();
+    void resetRobotPos();
+
     //---------------------------------------
     //-- PD Controller ----------------------
     //---------------------------------------

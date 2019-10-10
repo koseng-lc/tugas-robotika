@@ -34,6 +34,8 @@
 #include "path_planning_monitor/trajectory_viewer.h"
 #include "kinematics/kinematics.h"
 
+#define GUI_SCENE_RATE 60
+
 namespace Ui {
 class MainWindow;
 }

@@ -14,7 +14,7 @@
 //just temporary
 #define MAX_MOTOR_SPEED 10.0
 
-#define SPIN_RATE 120
+//#define CONTROLLER_RATE 120
 
 class Controller{
 public:

@@ -48,9 +48,9 @@ void MainWindow::spinThread(){
 
     trajectory_sub_ = g_nh.subscribe("/trajectory/solution", 1, &MainWindow::trajectoryCb, this);
 
-    reset_robot_pub_ = g_nh.advertise<std_msgs::Empty >("/vrep/reset_robot", 1);
+    reset_robot_pub_ = g_nh.advertise<std_msgs::Empty >("/vrep/reset_robot", 2);
 
-    ros::Rate loop_rate(60);
+    ros::Rate loop_rate(GUI_SCENE_RATE);
 
     while(ros::ok()){
         ros::spinOnce();

@@ -15,6 +15,8 @@
 
 #include "path_planning/dijkstra.h"
 
+#define PATH_PLANNING_RATE 5
+
 class PathPlanning{
 public:
     PathPlanning();

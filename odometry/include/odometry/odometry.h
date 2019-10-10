@@ -14,7 +14,7 @@
 
 #include "kinematics/kinematics.h"
 
-#define SPIN_RATE 120 // Hz
+#define ODOMETRY_RATE 120 // Hz
 
 #define MSEC2SEC 0.001
 
@@ -33,8 +33,6 @@ private:
     msgs::MotorVel motor_vel_;
 
     void odometryInCb(const msgs::MotorVelConstPtr &_msg);
-
-    double odometry__[2];
 
     ros::Publisher odometry_out_pub_;
 

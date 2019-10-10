@@ -10,12 +10,13 @@ TrajectoryGenerator::TrajectoryGenerator()
      , odometry_sub_(nh_.subscribe("/odometry/out", 1, &TrajectoryGenerator::odometryCb, this))
      , solutionx(spline_x_.getSolution())
      , solutiony(spline_y_.getSolution())
-     , robot_pose_pub_(nh_.advertise<geometry_msgs::Pose2D>("/robot/pose", 1)){
+     , robot_pose_pub_(nh_.advertise<geometry_msgs::Pose2D>("/robot/pose", 1))
+     , reset_robot_sub_(nh_.subscribe("/vrep/reset_robot", 1, &TrajectoryGenerator::resetRobotCb, this)){
 
     sync_.registerCallback(boost::bind(&TrajectoryGenerator::inputUtilsCb, this, _1, _2));
 
     //initialize PD Controller
-    kP = 150;
+    kP = 10;
     kD = 18;
     errorx = errory = 0;
     prev_errorx = prev_errory = 0;
@@ -45,6 +46,12 @@ void TrajectoryGenerator::odometryCb(const msgs::OdometryConstPtr &_msg){
     Spline::setX(robot_pos_) += -1 * odometry_.dx;
     Spline::setY(robot_pos_) += -1 * odometry_.dy;
     mileage_ += std::sqrt(odometry_.dx * odometry_.dx + odometry_.dy * odometry_.dy);
+}
+
+void TrajectoryGenerator::resetRobotCb(const std_msgs::EmptyConstPtr &_msg){
+    (void)_msg;
+    resetData();
+    resetRobotPos();
 }
 
 void TrajectoryGenerator::getKnots(){
@@ -121,7 +128,7 @@ Point TrajectoryGenerator::calcReference(){
 
 void TrajectoryGenerator::process(){
     static auto seq(0);
-    static std::size_t knots_size(0);
+//    static std::size_t knots_size(0);
 
     if(path_.header.seq > seq){
         Spline::setX(robot_pos_) = path_.path.back().x;
@@ -155,7 +162,7 @@ void TrajectoryGenerator::process(){
         spline_x_.solve();
         spline_y_.solve();
 
-        knots_size = knots_.size();
+//        knots_size = knots_.size();
 
         spline_x_.clearPoints();
         spline_y_.clearPoints();
@@ -173,14 +180,11 @@ void TrajectoryGenerator::process(){
     int target2robot_x(Spline::getX(robot_pos_) - path_.path.front().x);
     int target2robot_y(Spline::getY(robot_pos_) - path_.path.front().y);
 
-//    msgs::QuadraticSpline test;
-
     Point ref(calcReference());
 
     if(std::sqrt(target2robot_x*target2robot_x + target2robot_y*target2robot_y) < DISTANCE_TOLERANCE ||
             ref == Point{-1.0, -1.0}){
-        solutionx->f.clear();
-        solutiony->f.clear();
+        resetData();
     }
 
     //-- Controller
@@ -296,11 +300,14 @@ void TrajectoryGenerator::process(){
     auto inputx(velx + sum_px + sum_dx);
     auto inputy(velx + sum_py + sum_dy);
 
-//    if(fabs(inputx) <= 1.0)
-//        inputx = (double)sgn(inputx) * velx;
 
-//    if(fabs(inputy) <= 1.0)
-//        inputy = (double)sgn(inputy) * vely;
+    //-- TODO : Fix it !!!
+    if(std::fabs(inputx) <= 1.0)
+        inputx = (double)sgn(inputx) * velx;
+
+    if(std::fabs(inputy) <= 1.0)
+        inputy = (double)sgn(inputy) * vely;
+    //--------------------
 
     prev_errorx = errorx;
     prev_errory = errory;
@@ -346,8 +353,30 @@ void TrajectoryGenerator::process(){
 
 }
 
+void TrajectoryGenerator::resetData(){
+    solutionx->f.clear();
+    solutiony->f.clear();
+    mileage_ = 0;
+    errorx = 0;
+    errory = 0;
+    prev_errorx = 0;
+    prev_errory = 0;
+    piece_wise_idx_ = 0;
+
+}
+
+void TrajectoryGenerator::resetRobotPos(){
+    Spline::setX(robot_pos_) = 500 * .5;
+    Spline::setY(robot_pos_) = 500 * .5;
+
+    geometry_msgs::Pose2D robot_pose;
+    robot_pose.x = Spline::getX(robot_pos_);
+    robot_pose.y = Spline::getY(robot_pos_) ;
+    robot_pose_pub_.publish(robot_pose);
+}
+
 void TrajectoryGenerator::routine(){
-    ros::Rate loop_rate(30);
+    ros::Rate loop_rate(TRAJECTORY_GENERATOR_RATE);
     while(ros::ok()){
         ros::spinOnce();
         process();
