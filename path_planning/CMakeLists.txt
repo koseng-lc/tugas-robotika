@@ -13,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost 1.58.0 EXACT REQUIRED COMPONENTS system thread)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -145,9 +145,14 @@ add_executable(${PROJECT_NAME}_node
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} Boost::system Boost::thread)
+target_link_libraries(${PROJECT_NAME}_node
+    ${catkin_LIBRARIES}
+    Boost::system
+    Boost::thread
+    solver
+)
 
-target_link_libraries(${PROJECT_NAME}_node PUBLIC solver)
+#target_link_libraries(${PROJECT_NAME}_node PUBLIC solver)
 
 #############
 ## Install ##

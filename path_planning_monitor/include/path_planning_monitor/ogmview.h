@@ -19,12 +19,17 @@
 #include <QtConcurrent/QtConcurrent>
 
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <msgs/GridMapData.h>
 #include <msgs/VerticeData.h>
 #include <msgs/PlannerInput.h>
 #include <msgs/Path.h>
 
 #include <boost/thread/thread.hpp>
+
+#include <fstream>
+#include <ostream>
+#include <istream>
 
 #define CELL_COLS 50
 #define CELL_ROWS 50
@@ -106,7 +111,15 @@ private:
 
     inline int flatIdx(Point p)const{return p.first + p.second * CELL_COLS;}
 
+    //-------------------------------------------------------------------------------------------------------
+    void serialize(std::ofstream* _file, msgs::GridMapData _map);
+    void deserialize(std::ifstream& _file, msgs::GridMapData* _map);
+    std::string file_name_;
+
 private slots:
     void solve();
+    void saveMap();
+    void loadMap();
+    void setFileName(QString _file_name);
 
 };

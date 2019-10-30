@@ -2,7 +2,7 @@
 
 <launch>
 
-    <node pkg="path_planning_monitor" name="path_planning_monitor_node" type="path_planning_monitor_node" output="screen">
+    <node pkg="path_planning_monitor" name="path_planning_monitor_node" type="path_planning_monitor_node" output="screen"> <!-- launch-prefix="xterm -e gdb - -args"> -->
 
     </node>
 

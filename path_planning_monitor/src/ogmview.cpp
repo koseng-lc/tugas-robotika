@@ -183,3 +183,34 @@ void OGMView::setMode(Mode mode){
 void OGMView::publishMap(){
     gmd_pub_.publish(map_data_);
 }
+
+void OGMView::serialize(std::ofstream* _file, msgs::GridMapData _map){
+    for(const auto m:_map.m)
+        *_file << m << " ";
+}
+
+void OGMView::deserialize(std::ifstream &_file, msgs::GridMapData* _map){
+    for(auto& m:_map->m)
+        _file >> m;
+}
+
+void OGMView::saveMap(){
+    std::stringstream ss;
+    ss << ros::package::getPath("path_planning_monitor") << "/map/" << file_name_.c_str() << ".map";
+    std::ofstream map_file(ss.str().c_str(), std::ofstream::out);
+    serialize(&map_file, map_data_);
+    map_file.close();
+    std::cout << "Map saved to : " << ss.str() << std::endl;
+}
+
+void OGMView::loadMap(){
+    std::stringstream ss;
+    ss << ros::package::getPath("path_planning_monitor") << "/map/" << file_name_.c_str() << ".map";
+    std::ifstream map_file(ss.str().c_str());
+    deserialize(map_file, &map_data_);
+    std::cout << "Map loaded from : " << ss.str() << std::endl;
+}
+
+void OGMView::setFileName(QString _file_name){
+    file_name_ = _file_name.toStdString();
+}

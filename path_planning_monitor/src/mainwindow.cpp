@@ -26,8 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setFocus();
 
-    spin_thread_ = boost::thread{boost::bind(&MainWindow::spinThread, this)};
-
+    spin_thread_ = boost::thread{boost::bind(&MainWindow::spinThread, this)};    
 }
 
 MainWindow::~MainWindow(){
@@ -54,7 +53,6 @@ void MainWindow::spinThread(){
 
     while(ros::ok()){
         ros::spinOnce();
-
         loop_rate.sleep();
     }
     spin_cv_.notify_one();
@@ -100,13 +98,13 @@ void MainWindow::keyPressEvent(QKeyEvent *e){
     msgs::MotorVel motor_vel_data;
     motor_vel_data.motor1 = motor_vel.at(0);
     motor_vel_data.motor2 = motor_vel.at(1);
-    motor_vel_data.motor3 = motor_vel.at(2);    
+    motor_vel_data.motor3 = motor_vel.at(2);
 
     motor_vel_pub_.publish(motor_vel_data);
 
 }
 
-void MainWindow::updateScene(){    
+void MainWindow::updateScene(){
     ogm_view_->updateScene();
 }
 
@@ -116,7 +114,7 @@ void MainWindow::setupWidgets(){
     ogm_view_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     start_rb_ = new QRadioButton;
-    start_rb_->setText(tr("Start"));    
+    start_rb_->setText(tr("Start"));
 
     dest_rb_ = new QRadioButton;
     dest_rb_->setText(tr("Destination"));
@@ -158,13 +156,24 @@ void MainWindow::setupWidgets(){
     reset_robot_pb_ = new QPushButton;
     reset_robot_pb_->setText(tr("Reset Robot"));
 
+    file_name_lined_ = new QLineEdit;
+
+    save_pb_ = new QPushButton;
+    save_pb_->setText(tr("Save"));
+
+    load_pb_ = new QPushButton;
+    load_pb_->setText(tr("Load"));
+
     main_layout_ = new QGridLayout;
-    main_layout_->addWidget(ogm_view_,      0,0,5,1);
-    main_layout_->addWidget(mode_gb_,       0,1,1,1);
-    main_layout_->addWidget(misc_gb_,       1,1,1,1);
-    main_layout_->addWidget(solve_pb_,      2,1,1,1);
-    main_layout_->addWidget(reset_robot_pb_,3,1,1,1);
-    main_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),4,2);
+    main_layout_->addWidget(ogm_view_,       0,0,8,1);
+    main_layout_->addWidget(mode_gb_,        0,1,1,1);
+    main_layout_->addWidget(misc_gb_,        1,1,1,1);
+    main_layout_->addWidget(solve_pb_,       2,1,1,1);
+    main_layout_->addWidget(reset_robot_pb_ ,3,1,1,1);
+    main_layout_->addWidget(file_name_lined_,4,1,1,1);
+    main_layout_->addWidget(save_pb_,        5,1,1,1);
+    main_layout_->addWidget(load_pb_,        6,1,1,1);
+    main_layout_->addItem(new QSpacerItem(0,0,QSizePolicy::Expanding,QSizePolicy::Expanding),7,2);
 
     main_widget_ = new QWidget;
     main_widget_->setLayout(main_layout_);
@@ -190,13 +199,16 @@ void MainWindow::setupWidgets(){
 void MainWindow::setupActions(){
     connect(solve_pb_, SIGNAL(clicked(bool)), ogm_view_, SLOT(solve()));
     connect(reset_robot_pb_, SIGNAL(clicked(bool)), this, SLOT(resetRobot()));
+    connect(save_pb_, SIGNAL(clicked(bool)), ogm_view_, SLOT(saveMap()));
+    connect(load_pb_, SIGNAL(clicked(bool)), ogm_view_, SLOT(loadMap()));
+    connect(file_name_lined_, SIGNAL(textChanged(QString)), ogm_view_, SLOT(setFileName(QString)));
 
     connect(start_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
     connect(dest_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
     connect(set_occupancy_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
     connect(del_occupancy_rb_, SIGNAL(clicked(bool)), this, SLOT(modeRBActions()));
 
-    connect(delay_sb_, SIGNAL(valueChanged(int)), this, SLOT(setDelay(int)));    
+    connect(delay_sb_, SIGNAL(valueChanged(int)), this, SLOT(setDelay(int)));
 
     update_timer_.setInterval(33);
     connect(&update_timer_, SIGNAL(timeout()), this, SLOT(updateScene()));

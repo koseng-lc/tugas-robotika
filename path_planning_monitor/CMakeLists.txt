@@ -25,8 +25,9 @@ set(CMAKE_AUTOUIC on)
 set(CMAKE_AUTOMOC on)
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS system thread)
+find_package(Boost 1.58.0 EXACT REQUIRED COMPONENTS system thread)
 
+message(${Boost_LIBRARIES})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -126,7 +127,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include ${catkin_INCLUDE_DIRS} ${boost_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -146,8 +147,9 @@ add_executable(${PROJECT_NAME}_node
     src/mainwindow.cpp
     src/ogmview.cpp
     src/trajectory_viewer.cpp
-    include/path_planning_monitor/mainwindow.h
-    include/path_planning_monitor/ogmview.h
+
+    include/${PROJECT_NAME}/mainwindow.h
+    include/${PROJECT_NAME}/ogmview.h
     include/${PROJECT_NAME}/trajectory_viewer.h
 )
 
@@ -164,11 +166,13 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
     ${catkin_LIBRARIES}
+
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
     Boost::system
     Boost::thread
+
     kinematics
 )
 

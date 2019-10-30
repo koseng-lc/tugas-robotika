@@ -69,6 +69,9 @@ private:
 
     QPushButton* solve_pb_;
     QPushButton* reset_robot_pb_;
+    QLineEdit* file_name_lined_;
+    QPushButton* save_pb_;
+    QPushButton* load_pb_;
 
     void setupWidgets();
     void setupActions();
