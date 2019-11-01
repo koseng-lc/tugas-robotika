@@ -10,7 +10,7 @@ To create smooth robot path and generate reference for error tracking, using Spl
 PD-Controller was used to track the robot, to maintain the robot stay in the trajectory
 
 ### Demo
-[![Demo](https://img.youtube.com/vi/FbpXU4Tvm4E/0.jpg)](https://www.youtube.com/watch?v=H9wYJj_KRyo)
+[![Demo](https://img.youtube.com/vi/FbpXU4Tvm4E/0.jpg)](https://www.youtube.com/watch?v=FbpXU4Tvm4E)
 
 ### Team
   - Lintang Erlangga
